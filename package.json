@@ -1,0 +1,17 @@
+{
+  "name": "tally-bill-splitter",
+  "version": "1.0.0",
+  "description": "A fair bill-splitting application",
+  "main": "js/app.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": ["bill", "split", "calculator"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
