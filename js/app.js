@@ -5,6 +5,7 @@ createApp({
         const people = ref(['Alex', 'Sam']);
         const newPerson = ref('');
         const splitMethod = ref('dishes');
+        const tipCalculationMethod = ref('after-tax'); // 'before-tax' or 'after-tax'
         
         // Dishes split
         const taxPercent = ref(5);
@@ -117,10 +118,21 @@ createApp({
             const totals = {};
             people.value.forEach(p => totals[p] = 0);
 
+            // Calculate multiplier based on tip calculation method
+            const getMultiplier = (taxPct, tipPct) => {
+                if (tipCalculationMethod.value === 'after-tax') {
+                    // Tip calculated after tax: total = base * (1 + tax%) * (1 + tip%)
+                    return (1 + taxPct / 100) * (1 + tipPct / 100);
+                } else {
+                    // Tip calculated before tax (on base): total = base * (1 + tax% + tip%)
+                    return 1 + (taxPct / 100) + (tipPct / 100);
+                }
+            };
+
             if (splitMethod.value === 'even') {
                 // Even split calculation
                 if (totalBill.value > 0 && people.value.length > 0) {
-                    const multiplier = 1 + (evenTaxPercent.value / 100) + (evenTipPercent.value / 100);
+                    const multiplier = getMultiplier(evenTaxPercent.value, evenTipPercent.value);
                     const totalWithCharges = totalBill.value * multiplier;
                     const perPerson = totalWithCharges / people.value.length;
                     people.value.forEach(p => {
@@ -129,7 +141,7 @@ createApp({
                 }
             } else {
                 // Dishes split calculation
-                const multiplier = 1 + (taxPercent.value / 100) + (tipPercent.value / 100);
+                const multiplier = getMultiplier(taxPercent.value, tipPercent.value);
 
                 dishes.value.forEach(dish => {
                     if (dish.sharedBy.length > 0) {
@@ -148,6 +160,7 @@ createApp({
             newPerson, 
             dishes, 
             splitMethod,
+            tipCalculationMethod,
             totalBill,
             evenTaxPercent,
             evenTipPercent,
@@ -164,7 +177,8 @@ createApp({
             togglePerson,
             handleReceiptUpload,
             addSuggestedDish,
-            calculatedTotals 
+            calculatedTotals,
+            grandTotal
         };
     }
 }).mount('#app');
