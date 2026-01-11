@@ -4,11 +4,11 @@ createApp({
     setup() {
         const people = ref(['Alex', 'Sam']);
         const newPerson = ref('');
-        const splitMethod = ref('even');
+        const splitMethod = ref('dishes');
         
         // Dishes split
-        const taxPercent = ref(10);
-        const tipPercent = ref(18);
+        const taxPercent = ref(5);
+        const tipPercent = ref(15);
         const dishes = ref([
             { name: 'Pizza', price: 20, sharedBy: ['Alex', 'Sam'] },
             { name: 'Soda', price: 3, sharedBy: ['Alex'] }
@@ -16,8 +16,8 @@ createApp({
 
         // Even split
         const totalBill = ref(0);
-        const evenTaxPercent = ref(10);
-        const evenTipPercent = ref(18);
+        const evenTaxPercent = ref(5);
+        const evenTipPercent = ref(15);
 
         // Receipt OCR
         const receiptInput = ref(null);
