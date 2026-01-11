@@ -34,43 +34,16 @@ npm run test:watch
 ## Project Structure
 
 - `index.html` — main static page
-- `css/styles.css` — styling
-- `js/app.js` — application logic (Vue 3)
-- `js/app.test.js` — Jest test suite
-- `.github/workflows/deploy-pages.yml` — GitHub Actions workflow to deploy to GitHub Pages
+Tally is a single-page static web application for fairly splitting bills among participants.
 
-## Deployment (GitHub Pages)
+This page demonstrates the core user-facing features:
 
-This repository includes a GitHub Actions workflow that publishes the repository root to the `gh-pages` branch using `peaceiris/actions-gh-pages@v3` on every push to `main`.
+- Add and remove participants.
+- Add dishes, assign sharers for each dish, and remove dishes.
+- Calculate per-person totals using an even split or by dishes, with tax and tip applied.
+- Suggest dish names via client-side OCR (Tesseract.js) when uploading a receipt image.
 
-Quick steps to deploy:
+The app is a client-side Vue 3 application and does not require a server to run.
 
-1. Push your code to the `main` branch:
+Visit `index.html` to interact with the app in your browser.
 
-```powershell
-git add .
-git commit -m "Prepare site for deployment"
-git push origin main
-```
-
-2. The workflow will run and publish the site to the `gh-pages` branch. After a successful run, enable GitHub Pages in the repository Settings → Pages (if it isn't already) and select the `gh-pages` branch as the source.
-
-3. Your site will be available at:
-
-```
-https://<your-username>.github.io/<repo>/
-```
-
-If you prefer Pages to serve from `main` root, you can change the workflow or set Pages source manually in repository settings.
-
-## Notes
-
-- OCR: `Tesseract.js` is loaded from CDN in `index.html`. For accurate OCR in production you may want to run server-side OCR or improve image preprocessing.
-- This is a static front-end application; if you later add server-side features (authentication, persistence), consider hosting platforms like Vercel, Netlify, or Heroku.
-
-## License
-
-This project is available under the MIT license (add LICENSE file if needed).
-
----
----
