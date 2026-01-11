@@ -10,6 +10,8 @@ createApp({
         // Dishes split
         const taxPercent = ref(5);
         const tipPercent = ref(15);
+        const tipMode = ref('percent'); // 'percent' or 'amount'
+        const tipAmount = ref(0);
         const dishes = ref([
             { name: 'Pizza', price: 20, sharedBy: ['Alex', 'Sam'] },
             { name: 'Soda', price: 3, sharedBy: ['Alex'] }
@@ -19,6 +21,8 @@ createApp({
         const totalBill = ref(0);
         const evenTaxPercent = ref(5);
         const evenTipPercent = ref(15);
+        const evenTipMode = ref('percent');
+        const evenTipAmount = ref(0);
 
         // Receipt OCR
         const receiptInput = ref(null);
@@ -114,6 +118,18 @@ createApp({
             suggestedDishes.value = suggestedDishes.value.filter(d => d !== dishName);
         };
 
+        const clearTipPercents = () => {
+            tipPercent.value = 0;
+            tipAmount.value = 0;
+            evenTipPercent.value = 0;
+            evenTipAmount.value = 0;
+        };
+
+        const clearTaxPercents = () => {
+            taxPercent.value = 0;
+            evenTaxPercent.value = 0;
+        };
+
         const calculatedTotals = computed(() => {
             const totals = {};
             people.value.forEach(p => totals[p] = 0);
@@ -132,8 +148,14 @@ createApp({
             if (splitMethod.value === 'even') {
                 // Even split calculation
                 if (totalBill.value > 0 && people.value.length > 0) {
-                    const multiplier = getMultiplier(evenTaxPercent.value, evenTipPercent.value);
-                    const totalWithCharges = totalBill.value * multiplier;
+                    let totalWithCharges = 0;
+                    if (evenTipMode.value === 'percent') {
+                        const multiplier = getMultiplier(evenTaxPercent.value, evenTipPercent.value);
+                        totalWithCharges = totalBill.value * multiplier;
+                    } else {
+                        const totalWithTax = totalBill.value * (1 + evenTaxPercent.value / 100);
+                        totalWithCharges = totalWithTax + evenTipAmount.value;
+                    }
                     const perPerson = totalWithCharges / people.value.length;
                     people.value.forEach(p => {
                         totals[p] = perPerson;
@@ -141,11 +163,23 @@ createApp({
                 }
             } else {
                 // Dishes split calculation
-                const multiplier = getMultiplier(taxPercent.value, tipPercent.value);
+                const subtotalAll = dishes.value.reduce((s, d) => s + d.price, 0);
 
                 dishes.value.forEach(dish => {
                     if (dish.sharedBy.length > 0) {
-                        const portion = (dish.price / dish.sharedBy.length) * multiplier;
+                        let totalForDish = 0;
+                        const taxForDish = dish.price * (taxPercent.value / 100);
+
+                        if (tipMode.value === 'percent') {
+                            const multiplier = getMultiplier(taxPercent.value, tipPercent.value);
+                            totalForDish = dish.price * multiplier;
+                        } else {
+                            // tip is a fixed amount distributed proportionally by dish price
+                            const tipShare = subtotalAll > 0 ? (dish.price / subtotalAll) * tipAmount.value : 0;
+                            totalForDish = dish.price + taxForDish + tipShare;
+                        }
+
+                        const portion = totalForDish / dish.sharedBy.length;
                         dish.sharedBy.forEach(person => {
                             totals[person] += portion;
                         });
@@ -174,23 +208,65 @@ createApp({
                 ? subtotal * (taxPercent.value / 100)
                 : subtotal * (evenTaxPercent.value / 100);
 
-            let tipAmount = 0;
-            if (tipCalculationMethod.value === 'after-tax') {
-                // Tip is calculated on subtotal + tax
-                tipAmount = (subtotal + taxAmount) * (tipPercent.value / 100);
+            let tipAmt = 0;
+            if (splitMethod.value === 'dishes') {
+                tipAmt = tipMode.value === 'percent' ? computedDishTipAmount.value : tipAmount.value;
             } else {
-                // Tip is calculated on subtotal only
-                tipAmount = subtotal * (tipPercent.value / 100);
+                tipAmt = evenTipMode.value === 'percent' ? computedEvenTipAmount.value : evenTipAmount.value;
             }
 
-            const total = subtotal + taxAmount + tipAmount;
+            const total = subtotal + taxAmount + tipAmt;
 
             return {
                 subtotal: subtotal,
                 taxAmount: taxAmount,
-                tipAmount: tipAmount,
+                tipAmount: tipAmt,
                 total: total
             };
+        });
+
+        // Computed helpers for displaying tip equivalents
+        const computedDishTipAmount = computed(() => {
+            const subtotal = dishes.value.reduce((s, d) => s + d.price, 0);
+            const taxAmt = subtotal * (taxPercent.value / 100);
+            if (tipMode.value === 'percent') {
+                if (tipCalculationMethod.value === 'after-tax') return (subtotal + taxAmt) * (tipPercent.value / 100);
+                return subtotal * (tipPercent.value / 100);
+            }
+            return tipAmount.value;
+        });
+
+        const computedDishTaxAmount = computed(() => {
+            const subtotal = dishes.value.reduce((s, d) => s + d.price, 0);
+            return subtotal * (taxPercent.value / 100);
+        });
+
+        const computedDishTipPercent = computed(() => {
+            const subtotal = dishes.value.reduce((s, d) => s + d.price, 0);
+            const taxAmt = subtotal * (taxPercent.value / 100);
+            const base = tipCalculationMethod.value === 'after-tax' ? (subtotal + taxAmt) : subtotal;
+            if (base <= 0) return 0;
+            if (tipMode.value === 'amount') return (tipAmount.value / base) * 100;
+            return tipPercent.value;
+        });
+
+        const computedEvenTipAmount = computed(() => {
+            const subtotal = totalBill.value;
+            const taxAmt = subtotal * (evenTaxPercent.value / 100);
+            if (evenTipMode.value === 'percent') {
+                if (tipCalculationMethod.value === 'after-tax') return (subtotal + taxAmt) * (evenTipPercent.value / 100);
+                return subtotal * (evenTipPercent.value / 100);
+            }
+            return evenTipAmount.value;
+        });
+
+        const computedEvenTipPercent = computed(() => {
+            const subtotal = totalBill.value;
+            const taxAmt = subtotal * (evenTaxPercent.value / 100);
+            const base = tipCalculationMethod.value === 'after-tax' ? (subtotal + taxAmt) : subtotal;
+            if (base <= 0) return 0;
+            if (evenTipMode.value === 'amount') return (evenTipAmount.value / base) * 100;
+            return evenTipPercent.value;
         });
 
         return { 
@@ -204,6 +280,15 @@ createApp({
             evenTipPercent,
             taxPercent, 
             tipPercent,
+            tipMode,
+            tipAmount,
+            evenTipMode,
+            evenTipAmount,
+            computedDishTipAmount,
+            computedDishTaxAmount,
+            computedDishTipPercent,
+            computedEvenTipAmount,
+            computedEvenTipPercent,
             receiptInput,
             ocrProcessing,
             extractedText,
@@ -217,7 +302,9 @@ createApp({
             addSuggestedDish,
             calculatedTotals,
             grandTotal,
-            billBreakdown
+            billBreakdown,
+            clearTipPercents,
+            clearTaxPercents
         };
     }
 }).mount('#app');
