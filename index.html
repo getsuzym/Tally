@@ -255,6 +255,28 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Bill Breakdown -->
+                    <div v-if="Object.keys(calculatedTotals).length > 0" class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Subtotal (dishes):</span>
+                                <span class="font-semibold text-gray-800">${{ billBreakdown.subtotal.toFixed(2) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Tax ({{ splitMethod === 'dishes' ? taxPercent : evenTaxPercent }}%):</span>
+                                <span class="font-semibold text-gray-800">${{ billBreakdown.taxAmount.toFixed(2) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Tip ({{ splitMethod === 'dishes' ? tipPercent : evenTipPercent }}%):</span>
+                                <span class="font-semibold text-gray-800">${{ billBreakdown.tipAmount.toFixed(2) }}</span>
+                            </div>
+                            <div class="border-t border-gray-300 pt-2 flex justify-between">
+                                <span class="font-bold text-gray-800">Total:</span>
+                                <span class="font-bold text-lg bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">${{ billBreakdown.total.toFixed(2) }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

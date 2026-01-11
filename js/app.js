@@ -155,6 +155,44 @@ createApp({
             return totals;
         });
 
+        const grandTotal = computed(() => {
+            return Object.values(calculatedTotals.value).reduce((sum, total) => sum + total, 0);
+        });
+
+        const billBreakdown = computed(() => {
+            let subtotal = 0;
+            
+            if (splitMethod.value === 'dishes') {
+                // Sum all dish prices
+                subtotal = dishes.value.reduce((sum, dish) => sum + dish.price, 0);
+            } else {
+                // Even split uses totalBill as subtotal
+                subtotal = totalBill.value;
+            }
+
+            const taxAmount = splitMethod.value === 'dishes' 
+                ? subtotal * (taxPercent.value / 100)
+                : subtotal * (evenTaxPercent.value / 100);
+
+            let tipAmount = 0;
+            if (tipCalculationMethod.value === 'after-tax') {
+                // Tip is calculated on subtotal + tax
+                tipAmount = (subtotal + taxAmount) * (tipPercent.value / 100);
+            } else {
+                // Tip is calculated on subtotal only
+                tipAmount = subtotal * (tipPercent.value / 100);
+            }
+
+            const total = subtotal + taxAmount + tipAmount;
+
+            return {
+                subtotal: subtotal,
+                taxAmount: taxAmount,
+                tipAmount: tipAmount,
+                total: total
+            };
+        });
+
         return { 
             people, 
             newPerson, 
@@ -178,7 +216,8 @@ createApp({
             handleReceiptUpload,
             addSuggestedDish,
             calculatedTotals,
-            grandTotal
+            grandTotal,
+            billBreakdown
         };
     }
 }).mount('#app');
