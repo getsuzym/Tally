@@ -73,8 +73,4 @@ If you prefer Pages to serve from `main` root, you can change the workflow or se
 This project is available under the MIT license (add LICENSE file if needed).
 
 ---
-
-If you want, I can also:
-
-- Automatically enable GitHub Pages to serve from `gh-pages` using the GitHub API (requires a token), or
-- Watch the Actions run and report status and the final Pages URL.
+---
