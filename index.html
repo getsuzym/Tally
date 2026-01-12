@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen p-4 md:p-8">
@@ -25,12 +26,46 @@
             <!-- Card Content -->
             <div class="p-6 md:p-8">
 
+                <!-- Split Method Toggle -->
+                <div class="mb-8 pb-8 border-b border-gray-200">
+                    <button @click="toggleSection('splitMethod')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
+                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-layer-group mr-2 text-indigo-600"></i>Splitting Method
+                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 1</span>
+                            <span v-if="isSectionComplete.splitMethod && collapsedSections.splitMethod" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                                <i class="fas fa-check mr-1"></i>Complete
+                            </span>
+                        </label>
+                        <i :class="collapsedSections.splitMethod ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400"></i>
+                    </button>
+                    <div v-show="!collapsedSections.splitMethod" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button @click="splitMethod = 'even'" 
+                            :class="splitMethod === 'even' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300'"
+                            class="btn-transition py-3 rounded-lg font-medium transition">
+                            <i class="fas fa-equals mr-2"></i>Even Split
+                        </button>
+                        <button @click="splitMethod = 'dishes'" 
+                            :class="splitMethod === 'dishes' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300'"
+                            class="btn-transition py-3 rounded-lg font-medium transition">
+                            <i class="fas fa-utensils mr-2"></i>By Dishes
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Friends Section -->
-                <div class="mb-8">
-                    <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
-                        <i class="fas fa-users mr-2 text-indigo-600"></i>{{ splitMethod === 'even' ? 'Number of People' : 'Participants' }}
-                    </label>
+                <div class="mb-8 pb-8 border-b border-gray-200">
+                    <button @click="toggleSection('participants')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
+                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-users mr-2 text-indigo-600"></i>{{ splitMethod === 'even' ? 'Number of People' : 'Participants' }}
+                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 2</span>
+                            <span v-if="isSectionComplete.participants && collapsedSections.participants" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                                <i class="fas fa-check mr-1"></i>Complete
+                            </span>
+                        </label>
+                        <i :class="collapsedSections.participants ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400"></i>
+                    </button>
                     
+                    <div v-show="!collapsedSections.participants">
                     <!-- Even Split: Simple Number Input -->
                     <div v-if="splitMethod === 'even'" class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm">
                         <div class="flex items-center gap-4">
@@ -60,13 +95,14 @@
                                 <i class="fas fa-plus mr-2"></i>Add
                             </button>
                         </div>
-                        <div class="flex flex-wrap gap-2" v-if="people.length > 0">
-                            <div v-for="person in people" :key="person" 
-                                class="person-tag flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-gray-800 px-4 py-2 rounded-full border border-indigo-200 group">
-                                <span class="font-medium">{{ person }}</span>
-                                <button @click="removePerson(person)" 
-                                    class="text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100">
-                                    <i class="fas fa-times"></i>
+                        <div v-if="people.length > 0">
+                            <p class="text-xs text-gray-500 mb-2"><i class="fas fa-hand-pointer mr-1"></i>Tap a name to remove that person.</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button v-for="person in people" :key="person"
+                                    @click="removePerson(person)"
+                                    class="person-tag flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-gray-800 px-4 py-2 rounded-full border border-indigo-200 hover:border-red-200 hover:bg-red-50 transition">
+                                    <span class="font-medium">{{ person }}</span>
+                                    <i class="fas fa-times text-gray-500"></i>
                                 </button>
                             </div>
                         </div>
@@ -76,31 +112,19 @@
                     </div>
                 </div>
 
-                <!-- Split Method Toggle -->
-                <div class="mb-8 pb-8 border-b border-gray-200">
-                    <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
-                        <i class="fas fa-layer-group mr-2 text-indigo-600"></i>Splitting Method
-                    </label>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <button @click="splitMethod = 'even'" 
-                            :class="splitMethod === 'even' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300'"
-                            class="btn-transition py-3 rounded-lg font-medium transition">
-                            <i class="fas fa-equals mr-2"></i>Even Split
-                        </button>
-                        <button @click="splitMethod = 'dishes'" 
-                            :class="splitMethod === 'dishes' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300'"
-                            class="btn-transition py-3 rounded-lg font-medium transition">
-                            <i class="fas fa-utensils mr-2"></i>By Dishes
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Even Split Section -->
-                <div v-if="splitMethod === 'even'" class="mb-8 pb-8 border-b border-gray-200">
-                    <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
-                        <i class="fas fa-dollar-sign mr-2 text-indigo-600"></i>Total Bill Amount
-                    </label>
-                    <div class="space-y-4">
+                <div v-if="splitMethod === 'even'" class="mt-10 mb-8 pb-8 border-b border-gray-200">
+                    <button @click="toggleSection('billAmount')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
+                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-dollar-sign mr-2 text-indigo-600"></i>Total Bill Amount
+                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 3</span>
+                            <span v-if="isSectionComplete.billAmount && collapsedSections.billAmount" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                                <i class="fas fa-check mr-1"></i>Complete
+                            </span>
+                        </label>
+                        <i :class="collapsedSections.billAmount ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400"></i>
+                    </button>
+                    <div v-show="!collapsedSections.billAmount" class="space-y-4">
                         <div class="mb-4">
                             <label class="block text-xs text-gray-600 font-semibold mb-2">Total Bill (before tax & tip)</label>
                             <div class="flex items-center">
@@ -122,7 +146,7 @@
                         </div>
 
                         <!-- Tip One-Line Input with Calculation Method -->
-                        <div class="flex flex-col md:flex-row md:items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                        <div class="flex flex-col gap-3 p-3 bg-white rounded-lg border border-gray-200">
                             <div class="flex items-center gap-3 flex-1">
                                 <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
                                 <select v-model="evenTipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
@@ -139,8 +163,40 @@
                                 <span class="text-xs text-gray-500">{{ evenTipMode === 'percent' ? computedEvenTipAmount.toFixed(2) + ' $' : computedEvenTipPercent.toFixed(1) + '%' }}</span>
                             </div>
                             
-                            <!-- Tip Calculation Method Buttons (only visible for percentage mode) -->
-                            <div v-if="evenTipMode === 'percent'" class="flex gap-2 md:ml-auto">
+                            <!-- Quick Tip & Calculation Method Buttons (only visible for percentage mode) -->
+                            <div v-if="evenTipMode === 'percent'" class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs text-gray-500">Quick:</span>
+                                <button @click="setQuickTip(15, 'even')" 
+                                    :class="evenTipPercent === 15 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                    15%
+                                </button>
+                                <button @click="setQuickTip(18, 'even')" 
+                                    :class="evenTipPercent === 18 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                    18%
+                                </button>
+                                <button @click="setQuickTip(20, 'even')" 
+                                    :class="evenTipPercent === 20 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                    20%
+                                </button>
+                                <span class="text-xs text-gray-400 mx-2">|</span>
+                                <span class="text-xs text-gray-500">Calculate:</span>
+                                <button @click="tipCalculationMethod = 'after-tax'" 
+                                    :class="tipCalculationMethod === 'after-tax' ? 'bg-green-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                    After Tax
+                                </button>
+                                <button @click="tipCalculationMethod = 'before-tax'" 
+                                    :class="tipCalculationMethod === 'before-tax' ? 'bg-green-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                    Before Tax
+                                </button>
+                            </div>
+                            
+                            <!-- Old separate section removed -->
+                            <div v-if="false" class="flex gap-2 md:ml-auto">
                                 <button @click="tipCalculationMethod = 'after-tax'" 
                                     :class="tipCalculationMethod === 'after-tax' ? 'bg-green-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                                     class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
@@ -155,29 +211,41 @@
                         </div>
                     </div>
                 </div>
-                <div v-if="splitMethod === 'dishes'" class="mb-8 pb-8 border-b border-gray-200">
-                    <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
-                        <i class="fas fa-utensils mr-2 text-indigo-600"></i>Dishes
-                    </label>
 
-                    <!-- Receipt Scanner Button -->
-                    <div class="mb-6 p-4 bg-blue-50 rounded-lg border-2 border-dashed border-blue-300">
-                        <label class="block text-sm font-semibold text-gray-700 mb-3">
-                            <i class="fas fa-camera mr-2 text-blue-600"></i>Quick Add from Receipt
+                <!-- By Dishes Section -->
+                <div v-if="splitMethod === 'dishes'" class="mt-10 mb-8 pb-8 border-b border-gray-200">
+                    <button @click="toggleSection('dishes')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
+                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-utensils mr-2 text-indigo-600"></i>Dishes
+                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 3</span>
+                            <span v-if="isSectionComplete.dishes && collapsedSections.dishes" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                                <i class="fas fa-check mr-1"></i>Complete
+                            </span>
                         </label>
+                        <i :class="collapsedSections.dishes ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400"></i>
+                    </button>
+                    <div v-show="!collapsedSections.dishes">
+                    <!-- Quick Start Receipt Scanner -->
+                    <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-sm font-bold text-gray-800 uppercase tracking-wider">
+                                <i class="fas fa-camera mr-2 text-blue-600"></i>Quick Start
+                                <span class="ml-2 text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">Optional</span>
+                            </label>
+                        </div>
                         <input type="file" ref="receiptInput" @change="handleReceiptUpload" accept="image/*" 
                             class="hidden">
                         <div class="flex gap-2">
                             <button @click="$refs.receiptInput.click()" 
                                 class="btn-transition flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition">
-                                <i class="fas fa-camera mr-2"></i>Take Photo / Upload Receipt
+                                <i class="fas fa-camera mr-2"></i>Scan Receipt to Add Dishes
                             </button>
                             <button v-if="ocrProcessing" disabled 
                                 class="flex-1 bg-gray-300 text-gray-600 px-4 py-3 rounded-lg font-medium">
                                 <i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...
                             </button>
                         </div>
-                        <div v-if="extractedText" class="mt-4 p-3 bg-white rounded border border-blue-200">
+                        <div v-if="extractedText" class="mt-4 p-3 bg-white rounded-lg border border-blue-200">
                             <label class="block text-xs font-semibold text-gray-600 mb-2">Extracted Text:</label>
                             <p class="text-sm text-gray-700 max-h-32 overflow-y-auto whitespace-pre-wrap">{{ extractedText }}</p>
                         </div>
@@ -193,6 +261,9 @@
                         </div>
                     </div>
 
+                    <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
+                        <i class="fas fa-list mr-2 text-indigo-600"></i>Dish List
+                    </label>
                     <div v-if="dishes.length === 0" class="text-center py-8 text-gray-400">
                         <i class="fas fa-plate-wheat text-3xl mb-2"></i>
                         <p class="text-sm">No dishes added yet</p>
@@ -212,26 +283,39 @@
                             </button>
                         </div>
                         <!-- Shared by row -->
-                        <div class="flex flex-wrap gap-1">
+                        <div class="flex flex-wrap gap-1 items-center">
                             <button v-for="person in people" :key="person" 
                                 @click="togglePerson(index, person)"
                                 :class="dish.sharedBy.includes(person) ? 'bg-green-500 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
                                 class="btn-transition text-xs px-2 py-0.5 rounded font-medium transition">
                                 <i :class="dish.sharedBy.includes(person) ? 'fas fa-check' : ''"></i> {{ person }}
                             </button>
+                            <button @click="splitDishEvenly(index)" 
+                                class="btn-transition text-xs px-2 py-0.5 rounded font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition border border-indigo-200">
+                                <i class="fas fa-users mr-1"></i>All
+                            </button>
                         </div>
                     </div>
                     <button @click="addDish" class="btn-transition w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-medium py-3 rounded-lg transition border border-indigo-200">
                         <i class="fas fa-plus mr-2"></i>Add Another Dish
                     </button>
+                    </div>
                 </div>
 
                 <!-- Tax & Tip Section -->
                 <div v-if="splitMethod === 'dishes'" class="mb-8 pb-8 border-b border-gray-200">
-                    <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
-                        <i class="fas fa-percent mr-2 text-indigo-600"></i>Additional Charges
-                    </label>
+                    <button @click="toggleSection('additionalCharges')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
+                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-percent mr-2 text-indigo-600"></i>Additional Charges
+                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 4</span>
+                            <span v-if="isSectionComplete.additionalCharges && collapsedSections.additionalCharges" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                                <i class="fas fa-check mr-1"></i>Complete
+                            </span>
+                        </label>
+                        <i :class="collapsedSections.additionalCharges ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400"></i>
+                    </button>
 
+                    <div v-show="!collapsedSections.additionalCharges">
                     <!-- Tax One-Line Input -->
                     <div class="mb-4 flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
                         <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tax:</label>
@@ -244,7 +328,7 @@
                     </div>
 
                     <!-- Tip One-Line Input with Calculation Method -->
-                    <div class="flex flex-col md:flex-row md:items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <div class="flex flex-col gap-3 p-3 bg-white rounded-lg border border-gray-200">
                         <div class="flex items-center gap-3 flex-1">
                             <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
                             <select v-model="tipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
@@ -261,8 +345,26 @@
                             <span class="text-xs text-gray-500">{{ tipMode === 'percent' ? computedDishTipAmount.toFixed(2) + ' $' : computedDishTipPercent.toFixed(1) + '%' }}</span>
                         </div>
                         
-                        <!-- Tip Calculation Method Buttons (only visible for percentage mode) -->
-                        <div v-if="tipMode === 'percent'" class="flex gap-2 md:ml-auto">
+                        <!-- Quick Tip & Calculation Method Buttons (only visible for percentage mode) -->
+                        <div v-if="tipMode === 'percent'" class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs text-gray-500">Quick:</span>
+                            <button @click="setQuickTip(15, 'dishes')" 
+                                :class="tipPercent === 15 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                15%
+                            </button>
+                            <button @click="setQuickTip(18, 'dishes')" 
+                                :class="tipPercent === 18 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                18%
+                            </button>
+                            <button @click="setQuickTip(20, 'dishes')" 
+                                :class="tipPercent === 20 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                20%
+                            </button>
+                            <span class="text-xs text-gray-400 mx-2">|</span>
+                            <span class="text-xs text-gray-500">Calculate:</span>
                             <button @click="tipCalculationMethod = 'after-tax'" 
                                 :class="tipCalculationMethod === 'after-tax' ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                                 class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
@@ -275,16 +377,17 @@
                             </button>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- Results Section -->
-                <div>
+                <div ref="resultsSection" class="mb-4">
                     <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
                         <i class="fas fa-calculator mr-2 text-indigo-600"></i>Final Split
                     </label>
                     <div v-if="Object.keys(calculatedTotals).length === 0" class="text-center py-8 text-gray-400">
                         <i class="fas fa-coins text-3xl mb-2"></i>
-                        <p class="text-sm">Add dishes to calculate totals</p>
+                        <p class="text-sm">Add dishes or enter a bill total to calculate</p>
                     </div>
                     <div v-for="(total, person) in calculatedTotals" :key="person" 
                         class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-3 border border-indigo-100 hover:shadow-md">
@@ -305,7 +408,7 @@
                     <div v-if="Object.keys(calculatedTotals).length > 0" class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
-                                <span class="text-gray-700">Subtotal (dishes):</span>
+                                <span class="text-gray-700">Subtotal ({{ splitMethod === 'dishes' ? 'dishes' : 'bill' }}):</span>
                                 <span class="font-semibold text-gray-800">${{ billBreakdown.subtotal.toFixed(2) }}</span>
                             </div>
                             <div class="flex justify-between">
@@ -344,7 +447,32 @@
                                 <span class="font-bold text-lg bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">${{ billBreakdown.total.toFixed(2) }}</span>
                             </div>
                         </div>
+                        
+                        <!-- Share & Export Buttons -->
+                        <div class="mt-4 flex gap-2">
+                            <button @click="shareResults" class="btn-transition flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">
+                                <i class="fas fa-camera mr-2"></i>Save Screenshot
+                            </button>
+                        </div>
                     </div>
+        <!-- Floating Sticky Summary Card (Mobile-Friendly) -->
+        <div v-if="Object.keys(calculatedTotals).length > 0" 
+            class="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-indigo-200 shadow-2xl p-4 md:hidden z-50">
+            <div class="max-w-3xl mx-auto">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <i class="fas fa-calculator mr-1 text-indigo-600"></i>Quick Summary
+                    </span>
+                    <span class="text-xs font-semibold text-gray-500">{{ Object.keys(calculatedTotals).length }} {{ Object.keys(calculatedTotals).length === 1 ? 'person' : 'people' }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">Per Person:</span>
+                    <div class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        ${{ splitMethod === 'even' ? (billBreakdown.total / numberOfPeople).toFixed(2) : Object.values(calculatedTotals)[0]?.toFixed(2) }}
+                    </div>
+                </div>
+                <div class="mt-2 text-xs text-center text-gray-500">
+                    <i class="fas fa-arrow-down mr-1"></i>Scroll down for full breakdown
                 </div>
             </div>
         </div>
