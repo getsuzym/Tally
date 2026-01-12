@@ -68,21 +68,11 @@
                     <div v-show="!collapsedSections.participants">
                     <!-- Even Split: Simple Number Input -->
                     <div v-if="splitMethod === 'even'" class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm">
-                        <div class="flex items-center gap-4">
-                            <div class="flex-1">
-                                <div class="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total People</div>
-                                <div class="flex items-center gap-3">
-                                    <button @click="people.length > 1 && people.pop()" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-lg transition shadow-sm">−</button>
-                                    <div class="text-4xl font-bold text-green-600">{{ people.length }}</div>
-                                    <button @click="people.push('Person ' + (people.length + 1))" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-lg transition shadow-sm">+</button>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Per Person</div>
-                                <div class="text-3xl font-bold text-gray-800">
-                                    ${{ people.length > 0 ? ((billBreakdown?.total || 0) / people.length).toFixed(2) : '0.00' }}
-                                </div>
-                            </div>
+                        <div class="flex items-center justify-center gap-4">
+                            <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total People:</div>
+                            <button @click="people.length > 1 && people.pop()" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-lg transition shadow-sm">−</button>
+                            <div class="text-4xl font-bold text-green-600">{{ people.length }}</div>
+                            <button @click="people.push('Person ' + (people.length + 1))" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-lg transition shadow-sm">+</button>
                         </div>
                     </div>
 
@@ -389,7 +379,25 @@
                         <i class="fas fa-coins text-3xl mb-2"></i>
                         <p class="text-sm">Add dishes or enter a bill total to calculate</p>
                     </div>
-                    <div v-for="(total, person) in calculatedTotals" :key="person" 
+                    
+                    <!-- Even Split: Show single Per Person amount -->
+                    <div v-if="splitMethod === 'even' && Object.keys(calculatedTotals).length > 0"
+                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-3 border border-indigo-100 hover:shadow-md">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                                <i class="fas fa-equals"></i>
+                            </div>
+                            <span class="font-semibold text-gray-800">Per Person ({{ people.length }} {{ people.length === 1 ? 'person' : 'people' }})</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                ${{ Object.values(calculatedTotals)[0].toFixed(2) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- By Dishes: Show each person's amount -->
+                    <div v-if="splitMethod === 'dishes'" v-for="(total, person) in calculatedTotals" :key="person" 
                         class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-3 border border-indigo-100 hover:shadow-md">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
@@ -447,29 +455,61 @@
                                 <span class="font-bold text-lg bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">${{ billBreakdown.total.toFixed(2) }}</span>
                             </div>
                         </div>
-                        
-                        <!-- Share & Export Buttons -->
-                        <div class="mt-4 flex gap-2">
-                            <button @click="shareResults" class="btn-transition flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">
-                                <i class="fas fa-camera mr-2"></i>Save Screenshot
-                            </button>
-                        </div>
                     </div>
+        <!-- Show Summary Button (when closed) -->
+        <button v-if="peopleTotalsList.length > 0 && !showStickySummary"
+            @click="showStickySummary = true"
+            class="fixed bottom-4 right-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white px-4 py-3 rounded-full shadow-lg md:hidden z-50 transition"
+            title="Show quick summary">
+            <i class="fas fa-calculator mr-2"></i>Summary
+        </button>
+
         <!-- Floating Sticky Summary Card (Mobile-Friendly) -->
-        <div v-if="Object.keys(calculatedTotals).length > 0" 
+        <div v-if="peopleTotalsList.length > 0 && showStickySummary" 
             class="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-indigo-200 shadow-2xl p-4 md:hidden z-50">
             <div class="max-w-3xl mx-auto">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        <i class="fas fa-calculator mr-1 text-indigo-600"></i>Quick Summary
-                    </span>
-                    <span class="text-xs font-semibold text-gray-500">{{ Object.keys(calculatedTotals).length }} {{ Object.keys(calculatedTotals).length === 1 ? 'person' : 'people' }}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                            <i class="fas fa-calculator mr-1 text-indigo-600"></i>Quick Summary
+                        </span>
+                        <span class="text-[10px] font-semibold text-gray-400 uppercase">{{ splitMethod === 'even' ? 'Even Split' : 'By Dishes' }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button @click="showStickySummary = false" 
+                            class="text-gray-400 hover:text-gray-600 text-sm px-2 py-1 hover:bg-gray-100 rounded">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <span class="text-xs font-semibold text-gray-500">{{ peopleTotalsList.length }} {{ peopleTotalsList.length === 1 ? 'person' : 'people' }}</span>
+                        <button v-if="extraPeopleCount > 0" @click="showStickyDetails = !showStickyDetails"
+                            class="text-gray-500 hover:text-indigo-600 text-xs px-2 py-1 border border-gray-200 rounded-lg bg-white">
+                            <i :class="showStickyDetails ? 'fas fa-chevron-down' : 'fas fa-chevron-up'"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-sm font-medium text-gray-700">Per Person:</span>
-                    <div class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        ${{ splitMethod === 'even' ? (billBreakdown.total / numberOfPeople).toFixed(2) : Object.values(calculatedTotals)[0]?.toFixed(2) }}
+                    <span class="text-sm font-medium text-gray-700">{{ splitMethod === 'even' ? 'Per Person:' : 'Individual Totals:' }}</span>
+                    <div v-if="splitMethod === 'even'" class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        ${{ numberOfPeople > 0 ? (billBreakdown.total / numberOfPeople).toFixed(2) : '0.00' }}
                     </div>
+                    <div v-else class="text-sm font-medium text-gray-600">
+                        See below <i class="fas fa-arrow-down ml-1"></i>
+                    </div>
+                </div>
+                <div v-if="splitMethod === 'dishes'" class="mt-3 flex gap-2 overflow-x-auto pb-1">
+                    <div v-for="([person, total], idx) in visibleStickyPeople" :key="person"
+                        class="min-w-[90px] bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+                        <div class="text-[10px] font-semibold text-gray-500 uppercase truncate">{{ person }}</div>
+                        <div class="text-sm font-bold text-gray-900">${{ total.toFixed(2) }}</div>
+                    </div>
+                    <button v-if="!showStickyDetails && extraPeopleCount > 0"
+                        @click="showStickyDetails = true"
+                        class="min-w-[90px] px-3 py-2 border border-dashed border-gray-300 rounded-lg text-xs font-semibold text-gray-600 bg-white">
+                        +{{ extraPeopleCount }} more
+                    </button>
+                </div>
+                <div v-if="splitMethod === 'dishes' && showStickyDetails && extraPeopleCount > 0" class="mt-1 text-center text-[11px] text-gray-500">
+                    Showing everyone • <button @click="showStickyDetails = false" class="text-indigo-600 font-semibold">collapse</button>
                 </div>
                 <div class="mt-2 text-xs text-center text-gray-500">
                     <i class="fas fa-arrow-down mr-1"></i>Scroll down for full breakdown
