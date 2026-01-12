@@ -28,27 +28,51 @@
                 <!-- Friends Section -->
                 <div class="mb-8">
                     <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
-                        <i class="fas fa-users mr-2 text-indigo-600"></i>Participants
+                        <i class="fas fa-users mr-2 text-indigo-600"></i>{{ splitMethod === 'even' ? 'Number of People' : 'Participants' }}
                     </label>
-                    <div class="flex gap-2 mb-4">
-                        <input v-model="newPerson" @keyup.enter="addPerson" type="text" placeholder="Enter name" 
-                            class="flex-grow px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 transition">
-                        <button @click="addPerson" class="btn-transition bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg">
-                            <i class="fas fa-plus mr-2"></i>Add
-                        </button>
-                    </div>
-                    <div class="flex flex-wrap gap-2" v-if="people.length > 0">
-                        <div v-for="person in people" :key="person" 
-                            class="person-tag flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-gray-800 px-4 py-2 rounded-full border border-indigo-200 group">
-                            <span class="font-medium">{{ person }}</span>
-                            <button @click="removePerson(person)" 
-                                class="text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100">
-                                <i class="fas fa-times"></i>
-                            </button>
+                    
+                    <!-- Even Split: Simple Number Input -->
+                    <div v-if="splitMethod === 'even'" class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <div class="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total People</div>
+                                <div class="flex items-center gap-3">
+                                    <button @click="people.length > 1 && people.pop()" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-lg transition shadow-sm">−</button>
+                                    <div class="text-4xl font-bold text-green-600">{{ people.length }}</div>
+                                    <button @click="people.push('Person ' + (people.length + 1))" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-lg transition shadow-sm">+</button>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Per Person</div>
+                                <div class="text-3xl font-bold text-gray-800">
+                                    ${{ people.length > 0 ? ((billBreakdown?.total || 0) / people.length).toFixed(2) : '0.00' }}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div v-else class="text-center py-4 text-gray-400 text-sm">
-                        <i class="fas fa-user-plus mr-2"></i>Add at least one person to get started
+
+                    <!-- By Dishes: Name-Based Input -->
+                    <div v-else>
+                        <div class="flex gap-2 mb-4">
+                            <input v-model="newPerson" @keyup.enter="addPerson" type="text" placeholder="Enter name" 
+                                class="flex-grow px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 transition">
+                            <button @click="addPerson" class="btn-transition bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg">
+                                <i class="fas fa-plus mr-2"></i>Add
+                            </button>
+                        </div>
+                        <div class="flex flex-wrap gap-2" v-if="people.length > 0">
+                            <div v-for="person in people" :key="person" 
+                                class="person-tag flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-gray-800 px-4 py-2 rounded-full border border-indigo-200 group">
+                                <span class="font-medium">{{ person }}</span>
+                                <button @click="removePerson(person)" 
+                                    class="text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-4 text-gray-400 text-sm">
+                            <i class="fas fa-user-plus mr-2"></i>Add at least one person to get started
+                        </div>
                     </div>
                 </div>
 
@@ -76,80 +100,55 @@
                     <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
                         <i class="fas fa-dollar-sign mr-2 text-indigo-600"></i>Total Bill Amount
                     </label>
-                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+                    <div class="space-y-4">
                         <div class="mb-4">
                             <label class="block text-xs text-gray-600 font-semibold mb-2">Total Bill (before tax & tip)</label>
                             <div class="flex items-center">
                                 <span class="text-gray-600 text-2xl mr-3">$</span>
-                                <input v-model.number="totalBill" type="number" placeholder="0.00"
+                                <input v-model.number="totalBill" type="number" placeholder="0.00" @focus="$event.target.select()"
                                     class="w-full max-w-xs px-4 py-3 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-2xl font-bold text-right">
                             </div>
                         </div>
-                        <!-- Tip Calculation Method Toggle -->
-                        <div class="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                            <label class="block text-xs font-semibold text-gray-700 mb-3 uppercase">
-                                <i class="fas fa-cog mr-2 text-green-600"></i>Tip Calculation Method
-                            </label>
-                            <div class="flex gap-3">
+
+                        <!-- Tax One-Line Input -->
+                        <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                            <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tax:</label>
+                            <div class="flex items-center gap-1">
+                                <input v-model.number="evenTaxPercent" type="number" placeholder="5" @focus="$event.target.select()" 
+                                    class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
+                                <span class="text-base text-gray-500">%</span>
+                            </div>
+                            <span class="text-xs text-gray-500">${{ (totalBill * evenTaxPercent / 100).toFixed(2) }}</span>
+                        </div>
+
+                        <!-- Tip One-Line Input with Calculation Method -->
+                        <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                            <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
+                            <select v-model="evenTipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
+                                <option value="percent">%</option>
+                                <option value="amount">$</option>
+                            </select>
+                            <div class="flex items-center gap-1">
+                                <input v-if="evenTipMode === 'percent'" v-model.number="evenTipPercent" type="number" @focus="$event.target.select()" 
+                                    class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
+                                <input v-else v-model.number="evenTipAmount" type="number" placeholder="0.00" @focus="$event.target.select()"
+                                    class="text-base font-semibold bg-transparent text-gray-700 w-16 border-b border-gray-300 focus:ring-0 p-0 text-right focus:border-gray-500">
+                                <span class="text-base text-gray-500">{{ evenTipMode === 'percent' ? '%' : '' }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500">{{ evenTipMode === 'percent' ? computedEvenTipAmount.toFixed(2) + ' $' : computedEvenTipPercent.toFixed(1) + '%' }}</span>
+                            
+                            <!-- Tip Calculation Method Buttons (only visible for percentage mode) -->
+                            <div v-if="evenTipMode === 'percent'" class="ml-auto flex gap-2">
                                 <button @click="tipCalculationMethod = 'after-tax'" 
-                                    :class="tipCalculationMethod === 'after-tax' ? 'bg-green-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
-                                    class="flex-1 btn-transition text-sm px-3 py-2 rounded font-medium transition">
-                                    <i class="fas fa-calculator mr-1"></i>Tip After Tax
+                                    :class="tipCalculationMethod === 'after-tax' ? 'bg-green-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                    After Tax
                                 </button>
                                 <button @click="tipCalculationMethod = 'before-tax'" 
-                                    :class="tipCalculationMethod === 'before-tax' ? 'bg-green-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
-                                    class="flex-1 btn-transition text-sm px-3 py-2 rounded font-medium transition">
-                                    <i class="fas fa-calculator mr-1"></i>Tip Before Tax
+                                    :class="tipCalculationMethod === 'before-tax' ? 'bg-green-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                    Before Tax
                                 </button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-white p-4 rounded-lg border border-green-100 md:col-span-1">
-                                <div class="flex items-center justify-between mb-3">
-                                    <label class="block text-sm font-semibold text-gray-700">
-                                        Tax
-                                    </label>
-                                    <button @click="clearTaxPercents" class="text-sm text-green-600 bg-white border border-green-100 px-2 py-1 rounded hover:bg-green-50">Clear Tax</button>
-                                </div>
-                                <label class="text-xs text-gray-500">Percent</label>
-                                <div class="flex items-center">
-                                    <input v-model.number="evenTaxPercent" type="number" 
-                                        class="text-3xl font-bold bg-transparent text-green-600 w-12 border-b-2 border-green-600 focus:ring-0 p-0">
-                                    <span class="text-3xl text-green-600 ml-2">%</span>
-                                </div>
-                                <div class="text-sm text-gray-500 mt-2">${{ (totalBill * evenTaxPercent / 100).toFixed(2) }}</div>
-                            </div>
-                            <div class="bg-white p-4 rounded-lg border border-green-100 md:col-span-2">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label class="block text-sm font-semibold text-gray-700">
-                                        Tip
-                                    </label>
-                                    <button @click="clearTipPercents" class="text-sm text-green-600 bg-white border border-green-100 px-3 py-1 rounded hover:bg-green-50">Clear Tips</button>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3 items-center">
-                                    <div class="flex items-start">
-                                        <div>
-                                            <label class="text-xs text-gray-500">Percent</label>
-                                            <div class="flex items-center">
-                                                <input v-model.number="evenTipPercent" @input="evenTipMode = 'percent'" type="number" 
-                                                    class="text-3xl font-bold bg-transparent text-green-600 w-24 border-b-2 border-green-600 focus:ring-0 p-0">
-                                                <span class="text-3xl text-green-600 ml-2">%</span>
-                                            </div>
-                                            <div class="text-sm text-gray-500 mt-2">${{ computedEvenTipAmount.toFixed(2) }}</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-full">
-                                            <label class="text-xs text-gray-500">Amount</label>
-                                            <div class="flex items-center">
-                                                <span class="text-3xl text-green-600 mr-2">$</span>
-                                                <input v-model.number="evenTipAmount" @input="evenTipMode = 'amount'" type="number" placeholder="0.00"
-                                                    class="text-3xl font-bold bg-transparent text-green-600 w-28 border-b-2 border-green-600 focus:ring-0 p-0 text-right">
-                                            </div>
-                                            <div class="text-sm text-gray-500 mt-1">{{ computedEvenTipPercent.toFixed(1) }}%</div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -203,7 +202,7 @@
                                 class="flex-grow px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                             <div class="flex items-center gap-1">
                                 <span class="text-gray-500 text-xs">$</span>
-                                <input v-model.number="dish.price" type="number" placeholder="0.00" 
+                                <input v-model.number="dish.price" type="number" placeholder="0.00" @focus="$event.target.select()" 
                                     class="w-16 px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-right">
                             </div>
                             <button @click="removeDish(index)" class="btn-transition text-red-500 hover:text-red-700 hover:bg-red-100 px-1.5 py-1 rounded text-xs transition flex-shrink-0">
@@ -231,72 +230,45 @@
                         <i class="fas fa-percent mr-2 text-indigo-600"></i>Additional Charges
                     </label>
 
-                    <!-- Tip Calculation Method Toggle -->
-                    <div class="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                        <label class="block text-xs font-semibold text-gray-700 mb-3 uppercase">
-                            <i class="fas fa-cog mr-2 text-indigo-600"></i>Tip Calculation Method
-                        </label>
-                        <div class="flex gap-3">
-                            <button @click="tipCalculationMethod = 'after-tax'" 
-                                :class="tipCalculationMethod === 'after-tax' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
-                                class="flex-1 btn-transition text-sm px-3 py-2 rounded font-medium transition">
-                                <i class="fas fa-calculator mr-1"></i>Tip After Tax
-                            </button>
-                            <button @click="tipCalculationMethod = 'before-tax'" 
-                                :class="tipCalculationMethod === 'before-tax' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
-                                class="flex-1 btn-transition text-sm px-3 py-2 rounded font-medium transition">
-                                <i class="fas fa-calculator mr-1"></i>Tip Before Tax
-                            </button>
+                    <!-- Tax One-Line Input -->
+                    <div class="mb-4 flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                        <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tax:</label>
+                        <div class="flex items-center gap-1">
+                            <input v-model.number="taxPercent" type="number" placeholder="5" @focus="$event.target.select()" 
+                                class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
+                            <span class="text-base text-gray-500">%</span>
                         </div>
+                        <span class="text-xs text-gray-500">${{ computedDishTaxAmount.toFixed(2) }}</span>
                     </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 md:col-span-1">
-                            <div class="flex items-center justify-between mb-3">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    <i class="fas fa-receipt mr-2 text-blue-600"></i>Tax
-                                </label>
-                                <button @click="clearTaxPercents" class="text-sm text-indigo-600 bg-white border border-indigo-100 px-2 py-1 rounded hover:bg-indigo-50">Clear Tax</button>
-                            </div>
-                            <label class="text-xs text-gray-500">Percent</label>
-                            <div class="flex items-center">
-                                <input v-model.number="taxPercent" type="number" 
-                                    class="text-3xl font-bold bg-transparent text-indigo-600 w-12 border-b-2 border-indigo-600 focus:ring-0 p-0">
-                                <span class="text-3xl text-indigo-600 ml-2">%</span>
-                            </div>
-                            <div class="text-sm text-gray-500 mt-2">${{ computedDishTaxAmount.toFixed(2) }}</div>
+                    <!-- Tip One-Line Input with Calculation Method -->
+                    <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                        <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
+                        <select v-model="tipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
+                            <option value="percent">%</option>
+                            <option value="amount">$</option>
+                        </select>
+                        <div class="flex items-center gap-1">
+                            <input v-if="tipMode === 'percent'" v-model.number="tipPercent" type="number" @focus="$event.target.select()" 
+                                class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
+                            <input v-else v-model.number="tipAmount" type="number" placeholder="0.00" @focus="$event.target.select()"
+                                class="text-base font-semibold bg-transparent text-gray-700 w-16 border-b border-gray-300 focus:ring-0 p-0 text-right focus:border-gray-500">
+                            <span class="text-base text-gray-500">{{ tipMode === 'percent' ? '%' : '' }}</span>
                         </div>
-                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200 md:col-span-2">
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    <i class="fas fa-hand-holding-heart mr-2 text-purple-600"></i>Tip
-                                </label>
-                                <button @click="clearTipPercents" class="text-sm text-purple-600 bg-white border border-purple-100 px-3 py-1 rounded hover:bg-purple-50">Clear Tips</button>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3 items-center">
-                                <div class="flex items-start">
-                                    <div>
-                                        <label class="text-xs text-gray-500">Percent</label>
-                                        <div class="flex items-center">
-                                            <input v-model.number="tipPercent" @input="tipMode = 'percent'" type="number" 
-                                                class="text-3xl font-bold bg-transparent text-purple-600 w-24 border-b-2 border-purple-600 focus:ring-0 p-0">
-                                            <span class="text-3xl text-purple-600 ml-2">%</span>
-                                        </div>
-                                        <div class="text-sm text-gray-500 mt-2">${{ computedDishTipAmount.toFixed(2) }}</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-full">
-                                        <label class="text-xs text-gray-500">Amount</label>
-                                        <div class="flex items-center">
-                                            <span class="text-3xl text-purple-600 mr-2">$</span>
-                                            <input v-model.number="tipAmount" @input="tipMode = 'amount'" type="number" placeholder="0.00"
-                                                class="text-3xl font-bold bg-transparent text-purple-600 w-28 border-b-2 border-purple-600 focus:ring-0 p-0 text-right">
-                                        </div>
-                                        <div class="text-sm text-gray-500 mt-1">{{ computedDishTipPercent.toFixed(1) }}%</div>
-                                    </div>
-                                </div>
-                            </div>
+                        <span class="text-xs text-gray-500">{{ tipMode === 'percent' ? computedDishTipAmount.toFixed(2) + ' $' : computedDishTipPercent.toFixed(1) + '%' }}</span>
+                        
+                        <!-- Tip Calculation Method Buttons (only visible for percentage mode) -->
+                        <div v-if="tipMode === 'percent'" class="ml-auto flex gap-2">
+                            <button @click="tipCalculationMethod = 'after-tax'" 
+                                :class="tipCalculationMethod === 'after-tax' ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                After Tax
+                            </button>
+                            <button @click="tipCalculationMethod = 'before-tax'" 
+                                :class="tipCalculationMethod === 'before-tax' ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                Before Tax
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -336,8 +308,31 @@
                                 <span class="text-gray-700">Tax ({{ splitMethod === 'dishes' ? taxPercent : evenTaxPercent }}%):</span>
                                 <span class="font-semibold text-gray-800">${{ billBreakdown.taxAmount.toFixed(2) }}</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-700">Tip ({{ splitMethod === 'dishes' ? computedDishTipPercent.toFixed(1) : computedEvenTipPercent.toFixed(1) }}%):</span>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="text-gray-700">Tip ({{ splitMethod === 'dishes' ? computedDishTipPercent.toFixed(1) : computedEvenTipPercent.toFixed(1) }}%):</div>
+                                    <div class="text-xs text-gray-500 mt-0.5">
+                                        <template v-if="splitMethod === 'dishes' && tipMode === 'percent'">
+                                            <template v-if="tipCalculationMethod === 'after-tax'">
+                                                (${{ billBreakdown.subtotal.toFixed(2) }} + ${{ billBreakdown.taxAmount.toFixed(2) }}) × {{ tipPercent }}%
+                                            </template>
+                                            <template v-else>
+                                                ${{ billBreakdown.subtotal.toFixed(2) }} × {{ tipPercent }}%
+                                            </template>
+                                        </template>
+                                        <template v-else-if="splitMethod === 'even' && evenTipMode === 'percent'">
+                                            <template v-if="tipCalculationMethod === 'after-tax'">
+                                                (${{ billBreakdown.subtotal.toFixed(2) }} + ${{ billBreakdown.taxAmount.toFixed(2) }}) × {{ evenTipPercent }}%
+                                            </template>
+                                            <template v-else>
+                                                ${{ billBreakdown.subtotal.toFixed(2) }} × {{ evenTipPercent }}%
+                                            </template>
+                                        </template>
+                                        <template v-else>
+                                            Fixed Tip Amount
+                                        </template>
+                                    </div>
+                                </div>
                                 <span class="font-semibold text-gray-800">${{ billBreakdown.tipAmount.toFixed(2) }}</span>
                             </div>
                             <div class="border-t border-gray-300 pt-2 flex justify-between">

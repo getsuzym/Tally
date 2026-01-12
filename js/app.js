@@ -2,7 +2,7 @@ const { createApp, ref, computed } = Vue;
 
 createApp({
     setup() {
-        const people = ref(['Alex', 'Sam']);
+        const people = ref(['Person 1', 'Person 2']);
         const newPerson = ref('');
         const splitMethod = ref('dishes');
         const tipCalculationMethod = ref('after-tax'); // 'before-tax' or 'after-tax'
@@ -13,8 +13,8 @@ createApp({
         const tipMode = ref('percent'); // 'percent' or 'amount'
         const tipAmount = ref(0);
         const dishes = ref([
-            { name: 'Pizza', price: 20, sharedBy: ['Alex', 'Sam'] },
-            { name: 'Soda', price: 3, sharedBy: ['Alex'] }
+            { name: 'Pizza', price: 20, sharedBy: ['Person 1', 'Person 2'] },
+            { name: 'Soda', price: 3, sharedBy: ['Person 1'] }
         ]);
 
         // Even split
