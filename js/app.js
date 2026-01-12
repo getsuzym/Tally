@@ -1,4 +1,4 @@
-const { createApp, ref, computed } = Vue;
+const { createApp, ref, computed, watch, onMounted } = Vue;
 
 createApp({
     setup() {
@@ -6,6 +6,15 @@ createApp({
         const newPerson = ref('');
         const splitMethod = ref('dishes');
         const tipCalculationMethod = ref('after-tax'); // 'before-tax' or 'after-tax'
+        
+        // Collapsed sections state
+        const collapsedSections = ref({
+            splitMethod: false,
+            participants: false,
+            billAmount: false,
+            dishes: false,
+            additionalCharges: false
+        });
         
         // Dishes split
         const taxPercent = ref(5);
@@ -29,6 +38,7 @@ createApp({
         const ocrProcessing = ref(false);
         const extractedText = ref('');
         const suggestedDishes = ref([]);
+        const resultsSection = ref(null);
 
         const addPerson = () => {
             if (newPerson.value.trim()) {
@@ -117,6 +127,79 @@ createApp({
             dishes.value.push({ name: dishName, price: 0, sharedBy: [] });
             suggestedDishes.value = suggestedDishes.value.filter(d => d !== dishName);
         };
+
+        const splitDishEvenly = (dishIndex) => {
+            dishes.value[dishIndex].sharedBy = [...people.value];
+        };
+
+        const toggleSection = (section) => {
+            collapsedSections.value[section] = !collapsedSections.value[section];
+        };
+
+        const setQuickTip = (percent, mode = 'even') => {
+            if (mode === 'even') {
+                evenTipPercent.value = percent;
+                evenTipMode.value = 'percent';
+            } else {
+                tipPercent.value = percent;
+                tipMode.value = 'percent';
+            }
+        };
+
+        const shareResults = async () => {
+            if (typeof html2canvas === 'undefined') {
+                alert('Screenshot tool not available.');
+                return;
+            }
+            if (!resultsSection.value) {
+                alert('Nothing to capture yet.');
+                return;
+            }
+            try {
+                const canvas = await html2canvas(resultsSection.value, {
+                    backgroundColor: '#ffffff',
+                    useCORS: true,
+                    scale: window.devicePixelRatio || 2
+                });
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = 'tally-results.png';
+                link.click();
+            } catch (err) {
+                console.error('Screenshot error:', err);
+                alert('Unable to capture screenshot. Please try again.');
+            }
+        };
+
+        // Load settings from localStorage
+        onMounted(() => {
+            const saved = localStorage.getItem('tallySettings');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    if (settings.taxPercent) taxPercent.value = settings.taxPercent;
+                    if (settings.evenTaxPercent) evenTaxPercent.value = settings.evenTaxPercent;
+                    if (settings.tipPercent) tipPercent.value = settings.tipPercent;
+                    if (settings.evenTipPercent) evenTipPercent.value = settings.evenTipPercent;
+                    if (settings.tipCalculationMethod) tipCalculationMethod.value = settings.tipCalculationMethod;
+                } catch (e) {
+                    console.error('Error loading settings:', e);
+                }
+            }
+        });
+
+        // Save settings to localStorage
+        watch([taxPercent, evenTaxPercent, tipPercent, evenTipPercent, tipCalculationMethod], () => {
+            const settings = {
+                taxPercent: taxPercent.value,
+                evenTaxPercent: evenTaxPercent.value,
+                tipPercent: tipPercent.value,
+                evenTipPercent: evenTipPercent.value,
+                tipCalculationMethod: tipCalculationMethod.value
+            };
+            localStorage.setItem('tallySettings', JSON.stringify(settings));
+        });
 
         const clearTipPercents = () => {
             tipPercent.value = 0;
@@ -269,6 +352,18 @@ createApp({
             return evenTipPercent.value;
         });
 
+        const numberOfPeople = computed(() => people.value.length);
+
+        const isSectionComplete = computed(() => {
+            return {
+                splitMethod: true, // Always complete once selected
+                participants: people.value.length > 0,
+                billAmount: splitMethod.value === 'even' ? totalBill.value > 0 : true,
+                dishes: splitMethod.value === 'dishes' ? dishes.value.length > 0 : true,
+                additionalCharges: true // Optional, so always "complete"
+            };
+        });
+
         return { 
             people, 
             newPerson, 
@@ -293,6 +388,10 @@ createApp({
             ocrProcessing,
             extractedText,
             suggestedDishes,
+            resultsSection,
+            collapsedSections,
+            numberOfPeople,
+            isSectionComplete,
             addPerson, 
             removePerson, 
             addDish, 
@@ -300,6 +399,10 @@ createApp({
             togglePerson,
             handleReceiptUpload,
             addSuggestedDish,
+            splitDishEvenly,
+            toggleSection,
+            setQuickTip,
+            shareResults,
             calculatedTotals,
             grandTotal,
             billBreakdown,
