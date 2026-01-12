@@ -39,6 +39,8 @@ createApp({
         const extractedText = ref('');
         const suggestedDishes = ref([]);
         const resultsSection = ref(null);
+        const showStickyDetails = ref(false);
+        const showStickySummary = ref(true);
 
         const addPerson = () => {
             if (newPerson.value.trim()) {
@@ -155,20 +157,68 @@ createApp({
                 alert('Nothing to capture yet.');
                 return;
             }
+            
+            // Hide sticky summary before screenshot
+            const wasSummaryVisible = showStickySummary.value;
+            showStickySummary.value = false;
+            
+            // Wait a moment for UI to update
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
             try {
                 const canvas = await html2canvas(resultsSection.value, {
                     backgroundColor: '#ffffff',
                     useCORS: true,
                     scale: window.devicePixelRatio || 2
                 });
-                const dataUrl = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = 'tally-results.png';
-                link.click();
+
+                const blob = await new Promise((resolve, reject) => {
+                    canvas.toBlob((blobResult) => {
+                        if (blobResult) resolve(blobResult);
+                        else reject(new Error('Unable to capture screenshot.'));
+                    }, 'image/png');
+                });
+
+                const fileName = `tally-results-${Date.now()}.png`;
+                const file = new File([blob], fileName, { type: 'image/png' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    // Use Web Share API with files - user can choose to save to photos
+                    await navigator.share({
+                        files: [file],
+                        title: 'Tally Bill Split',
+                        text: 'Bill breakdown from Tally'
+                    });
+                } else {
+                    // Fallback: Open image in new window where user can long-press to save
+                    const imageUrl = canvas.toDataURL('image/png');
+                    const newWindow = window.open();
+                    if (newWindow) {
+                        newWindow.document.write(`
+                            <html>
+                            <head><title>Tally Results</title>
+                            <style>
+                                body { margin: 0; padding: 20px; background: #f0f0f0; display: flex; flex-direction: column; align-items: center; }
+                                img { max-width: 100%; height: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                                p { font-family: sans-serif; color: #666; margin-top: 20px; text-align: center; }
+                            </style>
+                            </head>
+                            <body>
+                            <img src="${imageUrl}" alt="Tally Results">
+                            <p>Long-press or right-click the image to save to your photos</p>
+                            </body>
+                            </html>
+                        `);
+                    } else {
+                        alert('Please enable popups to save the screenshot');
+                    }
+                }
             } catch (err) {
                 console.error('Screenshot error:', err);
                 alert('Unable to capture screenshot. Please try again.');
+            } finally {
+                // Restore sticky summary visibility
+                showStickySummary.value = wasSummaryVisible;
             }
         };
 
@@ -354,6 +404,25 @@ createApp({
 
         const numberOfPeople = computed(() => people.value.length);
 
+        const firstPersonTotal = computed(() => {
+            const totals = Object.values(calculatedTotals.value);
+            return totals.length > 0 ? totals[0] : 0;
+        });
+
+        const peopleTotalsList = computed(() => Object.entries(calculatedTotals.value));
+        const extraPeopleCount = computed(() => Math.max(0, peopleTotalsList.value.length - 3));
+        const visibleStickyPeople = computed(() => {
+            const list = peopleTotalsList.value;
+            if (showStickyDetails.value || list.length <= 3) return list;
+            return list.slice(0, 3);
+        });
+
+        watch(peopleTotalsList, (list) => {
+            if (list.length <= 3) {
+                showStickyDetails.value = false;
+            }
+        });
+
         const isSectionComplete = computed(() => {
             return {
                 splitMethod: true, // Always complete once selected
@@ -389,9 +458,15 @@ createApp({
             extractedText,
             suggestedDishes,
             resultsSection,
+            showStickyDetails,
+            showStickySummary,
             collapsedSections,
             numberOfPeople,
             isSectionComplete,
+            firstPersonTotal,
+            peopleTotalsList,
+            visibleStickyPeople,
+            extraPeopleCount,
             addPerson, 
             removePerson, 
             addDish, 
