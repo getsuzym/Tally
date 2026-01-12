@@ -122,23 +122,25 @@
                         </div>
 
                         <!-- Tip One-Line Input with Calculation Method -->
-                        <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-                            <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
-                            <select v-model="evenTipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
-                                <option value="percent">%</option>
-                                <option value="amount">$</option>
-                            </select>
-                            <div class="flex items-center gap-1">
-                                <input v-if="evenTipMode === 'percent'" v-model.number="evenTipPercent" type="number" @focus="$event.target.select()" 
-                                    class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
-                                <input v-else v-model.number="evenTipAmount" type="number" placeholder="0.00" @focus="$event.target.select()"
-                                    class="text-base font-semibold bg-transparent text-gray-700 w-16 border-b border-gray-300 focus:ring-0 p-0 text-right focus:border-gray-500">
-                                <span class="text-base text-gray-500">{{ evenTipMode === 'percent' ? '%' : '' }}</span>
+                        <div class="flex flex-col md:flex-row md:items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                            <div class="flex items-center gap-3 flex-1">
+                                <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
+                                <select v-model="evenTipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
+                                    <option value="percent">%</option>
+                                    <option value="amount">$</option>
+                                </select>
+                                <div class="flex items-center gap-1">
+                                    <input v-if="evenTipMode === 'percent'" v-model.number="evenTipPercent" type="number" @focus="$event.target.select()" 
+                                        class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
+                                    <input v-else v-model.number="evenTipAmount" type="number" placeholder="0.00" @focus="$event.target.select()"
+                                        class="text-base font-semibold bg-transparent text-gray-700 w-16 border-b border-gray-300 focus:ring-0 p-0 text-right focus:border-gray-500">
+                                    <span class="text-base text-gray-500">{{ evenTipMode === 'percent' ? '%' : '' }}</span>
+                                </div>
+                                <span class="text-xs text-gray-500">{{ evenTipMode === 'percent' ? computedEvenTipAmount.toFixed(2) + ' $' : computedEvenTipPercent.toFixed(1) + '%' }}</span>
                             </div>
-                            <span class="text-xs text-gray-500">{{ evenTipMode === 'percent' ? computedEvenTipAmount.toFixed(2) + ' $' : computedEvenTipPercent.toFixed(1) + '%' }}</span>
                             
                             <!-- Tip Calculation Method Buttons (only visible for percentage mode) -->
-                            <div v-if="evenTipMode === 'percent'" class="ml-auto flex gap-2">
+                            <div v-if="evenTipMode === 'percent'" class="flex gap-2 md:ml-auto">
                                 <button @click="tipCalculationMethod = 'after-tax'" 
                                     :class="tipCalculationMethod === 'after-tax' ? 'bg-green-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                                     class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
@@ -242,23 +244,25 @@
                     </div>
 
                     <!-- Tip One-Line Input with Calculation Method -->
-                    <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-                        <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
-                        <select v-model="tipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
-                            <option value="percent">%</option>
-                            <option value="amount">$</option>
-                        </select>
-                        <div class="flex items-center gap-1">
-                            <input v-if="tipMode === 'percent'" v-model.number="tipPercent" type="number" @focus="$event.target.select()" 
-                                class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
-                            <input v-else v-model.number="tipAmount" type="number" placeholder="0.00" @focus="$event.target.select()"
-                                class="text-base font-semibold bg-transparent text-gray-700 w-16 border-b border-gray-300 focus:ring-0 p-0 text-right focus:border-gray-500">
-                            <span class="text-base text-gray-500">{{ tipMode === 'percent' ? '%' : '' }}</span>
+                    <div class="flex flex-col md:flex-row md:items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                        <div class="flex items-center gap-3 flex-1">
+                            <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
+                            <select v-model="tipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
+                                <option value="percent">%</option>
+                                <option value="amount">$</option>
+                            </select>
+                            <div class="flex items-center gap-1">
+                                <input v-if="tipMode === 'percent'" v-model.number="tipPercent" type="number" @focus="$event.target.select()" 
+                                    class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
+                                <input v-else v-model.number="tipAmount" type="number" placeholder="0.00" @focus="$event.target.select()"
+                                    class="text-base font-semibold bg-transparent text-gray-700 w-16 border-b border-gray-300 focus:ring-0 p-0 text-right focus:border-gray-500">
+                                <span class="text-base text-gray-500">{{ tipMode === 'percent' ? '%' : '' }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500">{{ tipMode === 'percent' ? computedDishTipAmount.toFixed(2) + ' $' : computedDishTipPercent.toFixed(1) + '%' }}</span>
                         </div>
-                        <span class="text-xs text-gray-500">{{ tipMode === 'percent' ? computedDishTipAmount.toFixed(2) + ' $' : computedDishTipPercent.toFixed(1) + '%' }}</span>
                         
                         <!-- Tip Calculation Method Buttons (only visible for percentage mode) -->
-                        <div v-if="tipMode === 'percent'" class="ml-auto flex gap-2">
+                        <div v-if="tipMode === 'percent'" class="flex gap-2 md:ml-auto">
                             <button @click="tipCalculationMethod = 'after-tax'" 
                                 :class="tipCalculationMethod === 'after-tax' ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                                 class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
