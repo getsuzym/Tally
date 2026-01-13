@@ -41,6 +41,13 @@ input:focus {
         padding: 12px 16px;
     }
     
+    /* Small icon buttons can be smaller */
+    button.w-8 {
+        min-width: 32px;
+        min-height: 32px;
+        padding: 0;
+    }
+    
     /* Primary action buttons even larger */
     .btn-transition:not(.person-tag) {
         min-height: 52px;
@@ -91,10 +98,10 @@ input:focus {
         letter-spacing: 0.05em;
     }
     
-    /* Full width inputs on mobile */
-    input[type="text"],
-    input[type="number"],
-    select {
+    /* Full width inputs on mobile by default, but allow explicit widths */
+    input[type="text"]:not([class*="w-"]),
+    input[type="number"]:not([class*="w-"]),
+    select:not([class*="w-"]) {
         width: 100%;
     }
     
