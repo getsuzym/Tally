@@ -28,9 +28,9 @@
 
                 <!-- Friends Section -->
                 <div class="mb-8 pb-8 border-b border-gray-200">
-                    <button @click="toggleSection('participants')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 p-4 rounded-xl transition border-2 border-transparent hover:border-indigo-200">
-                        <label class="block text-base md:text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
-                            <i class="fas fa-users mr-2 text-indigo-600 text-lg"></i>{{ splitMethod === 'even' ? 'Number of People' : 'Participants' }}
+                    <button @click="toggleSection('participants')" :class="!collapsedSections.participants ? 'p-4' : 'p-2.5'" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 rounded-xl transition border-2 border-transparent hover:border-indigo-200">
+                        <label class="block font-bold text-gray-800 uppercase tracking-wider cursor-pointer" :class="!collapsedSections.participants ? 'text-base md:text-sm' : 'text-sm'">
+                            <i class="fas fa-users mr-2 text-indigo-600" :class="!collapsedSections.participants ? 'text-lg' : 'text-base'"></i>{{ splitMethod === 'even' ? 'Number of People' : 'Participants' }}
                             <span class="ml-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">Step 1</span>
                             <span v-if="isSectionComplete.participants && collapsedSections.participants && reviewedSections.participants" class="ml-2 text-xs font-semibold text-green-600 bg-green-100 px-2 py-1.5 rounded-lg">
                                 <i class="fas fa-check"></i>
@@ -78,6 +78,7 @@
                         <div v-else class="text-center py-4 text-gray-400 text-sm">
                             <i class="fas fa-user-plus mr-2"></i>Add at least one person to get started
                         </div>
+                    </div>
                     </div>
                 </div>
 
@@ -188,9 +189,9 @@
 
                 <!-- By Dishes Section -->
                 <div v-if="splitMethod === 'dishes'" class="mt-10 mb-8 pb-8 border-b border-gray-200">
-                    <button @click="toggleSection('dishes')" :class="!collapsedSections.dishes ? 'bg-indigo-50 border-indigo-300' : 'border-transparent'" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 p-4 rounded-xl transition border-2 hover:border-indigo-200">
-                        <label class="block text-base md:text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
-                            <i class="fas fa-utensils mr-2 text-indigo-600 text-lg"></i>Dishes
+                    <button @click="toggleSection('dishes')" :class="[!collapsedSections.dishes ? 'bg-indigo-50 border-indigo-300 p-4' : 'border-transparent p-2.5']" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 rounded-xl transition border-2 hover:border-indigo-200">
+                        <label class="block font-bold text-gray-800 uppercase tracking-wider cursor-pointer" :class="!collapsedSections.dishes ? 'text-base md:text-sm' : 'text-sm'">
+                            <i class="fas fa-utensils mr-2 text-indigo-600" :class="!collapsedSections.dishes ? 'text-lg' : 'text-base'"></i>Dishes
                             <span class="ml-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">Step 2</span>
                             <span v-if="isSectionComplete.dishes && collapsedSections.dishes && reviewedSections.dishes" class="ml-2 text-xs font-semibold text-green-600 bg-green-100 px-2 py-1.5 rounded-lg">
                                 <i class="fas fa-check"></i>
@@ -207,24 +208,23 @@
                     <div v-show="!collapsedSections.dishes">
                     <!-- Advanced Features (Receipt Scanner) -->
                     <div class="mb-6">
-                        <button @click="showAdvancedFeatures = !showAdvancedFeatures" class="w-full mb-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 hover:border-blue-300 transition flex items-center justify-between shadow-sm">
-                            <span class="text-sm md:text-xs font-bold text-gray-700">
-                                <i class="fas fa-magic mr-2 text-blue-600 text-lg md:text-base"></i>Advanced: Scan Receipt
-                                <span class="ml-2 text-xs font-semibold text-blue-600 bg-blue-100 px-3 py-1.5 rounded-lg">Optional</span>
+                        <button @click="showAdvancedFeatures = !showAdvancedFeatures" class="w-full mb-3 px-3 py-1.5 bg-gray-50 rounded-md border border-gray-200 hover:border-gray-300 transition flex items-center justify-between">
+                            <span class="text-xs font-medium text-gray-600">
+                                <i class="fas fa-magic mr-1.5 text-blue-500 text-xs"></i>Advanced: Scan Receipt
                             </span>
-                            <i :class="showAdvancedFeatures ? 'fa-chevron-up' : 'fa-chevron-down'" class="fas text-gray-400 text-lg"></i>
+                            <i :class="showAdvancedFeatures ? 'fa-chevron-up' : 'fa-chevron-down'" class="fas text-gray-400 text-xs"></i>
                         </button>
-                    <div v-show="showAdvancedFeatures" class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                    <div v-show="showAdvancedFeatures" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <input type="file" ref="receiptInput" @change="handleReceiptUpload" accept="image/*" 
                             class="hidden">
                         <div class="flex gap-2">
                             <button @click="$refs.receiptInput.click()" 
-                                class="btn-transition flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition">
-                                <i class="fas fa-camera mr-2"></i>Scan Receipt to Add Dishes
+                                class="btn-transition flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md font-medium transition text-sm">
+                                <i class="fas fa-camera mr-1.5"></i>Scan Receipt
                             </button>
                             <button v-if="ocrProcessing" disabled 
-                                class="flex-1 bg-gray-300 text-gray-600 px-4 py-3 rounded-lg font-medium">
-                                <i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...
+                                class="flex-1 bg-gray-300 text-gray-600 px-3 py-2 rounded-md font-medium text-sm">
+                                <i class="fas fa-spinner fa-spin mr-1.5"></i>Analyzing...
                             </button>
                         </div>
                         <div v-if="extractedText" class="mt-4 p-3 bg-white rounded-lg border border-blue-200">
@@ -251,41 +251,33 @@
                         <i class="fas fa-plate-wheat text-3xl mb-2"></i>
                         <p class="text-sm">No dishes added yet</p>
                     </div>
-                    <div v-for="(dish, index) in dishes" :key="index" class="dish-item bg-white rounded-lg p-4 mb-3 border border-gray-200 space-y-3 shadow-sm">
-                        <!-- Dish name -->
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Dish Name</label>
-                            <input v-model="dish.name" placeholder="Enter dish name" @focus="handleDishNameFocus(index, $event)" @input="dish.isEdited = true"
+                    <div v-for="(dish, index) in dishes" :key="index" class="dish-item bg-white rounded-lg p-3 mb-2 border border-gray-200 shadow-sm">
+                        <!-- Line 1: Dish name and price -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <input v-model="dish.name" placeholder="Dish name" @focus="handleDishNameFocus(index, $event)" @input="dish.isEdited = true"
                                 :class="!dish.isEdited && dish.name ? 'text-gray-400 italic' : ''"
-                                class="w-full px-3 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                        </div>
-                        <!-- Price -->
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Price</label>
-                            <div class="flex items-center gap-2">
-                                <span class="text-gray-500 text-lg font-semibold">$</span>
-                                <input v-model.number="dish.price" type="number" inputmode="decimal" step="0.01" placeholder="0.00" @focus="$event.target.select()" 
-                                    class="flex-1 px-3 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-right">
-                                <button @click="removeDish(index)" class="btn-transition text-red-500 hover:text-white hover:bg-red-500 px-4 py-3 rounded-lg transition flex-shrink-0 border-2 border-red-300 hover:border-red-500 min-h-[48px] min-w-[48px]" title="Delete dish">
-                                    <i class="fas fa-trash text-lg"></i>
-                                </button>
+                                class="flex-1 px-3 py-2.5 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-w-0">
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <span class="text-gray-500 text-base font-semibold">$</span>
+                                <input v-model.number="dish.price" type="number" inputmode="decimal" step="0.01" placeholder="0" @focus="$event.target.select()" 
+                                    class="w-14 px-1 py-2.5 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-right">
                             </div>
+                            <button @click="removeDish(index)" class="btn-transition text-red-500 hover:text-white hover:bg-red-500 w-8 h-8 rounded-md transition flex-shrink-0 border border-red-300 hover:border-red-500 flex items-center justify-center" title="Delete">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
                         </div>
-                        <!-- Shared by -->
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-2">Who ordered this?</label>
-                            <div class="flex flex-wrap gap-1.5 items-center">
-                                <button v-for="person in people" :key="person" 
-                                    @click="togglePerson(index, person)"
-                                    :class="dish.sharedBy.includes(person) ? 'bg-green-500 text-white shadow-sm' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
-                                    class="btn-transition text-sm px-3 py-1.5 rounded-lg font-medium transition">
-                                    <i :class="dish.sharedBy.includes(person) ? 'fas fa-check mr-1' : ''"></i>{{ person }}
-                                </button>
-                                <button @click="splitDishEvenly(index)" 
-                                    class="btn-transition text-sm px-3 py-1.5 rounded-lg font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition border border-indigo-200">
-                                    <i class="fas fa-users mr-1"></i>All
-                                </button>
-                            </div>
+                        <!-- Line 2: Who ordered -->
+                        <div class="flex flex-wrap gap-1 items-center">
+                            <button v-for="person in people" :key="person" 
+                                @click="togglePerson(index, person)"
+                                :class="dish.sharedBy.includes(person) ? 'bg-green-500 text-white shadow-sm' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
+                                class="btn-transition text-xs px-2 py-1 rounded font-medium transition">
+                                <i :class="dish.sharedBy.includes(person) ? 'fas fa-check mr-0.5' : ''"></i>{{ person }}
+                            </button>
+                            <button @click="splitDishEvenly(index)" 
+                                class="btn-transition text-xs px-2 py-1 rounded font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition border border-indigo-200">
+                                <i class="fas fa-users mr-0.5"></i>All
+                            </button>
                         </div>
                     </div>
                     <button @click="addDish" class="btn-transition w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 text-lg rounded-xl transition shadow-lg min-h-[56px]">
@@ -296,9 +288,9 @@
 
                 <!-- Tax & Tip Section -->
                 <div v-if="splitMethod === 'dishes'" class="mb-8 pb-8 border-b border-gray-200">
-                    <button @click="toggleSection('additionalCharges')" :class="!collapsedSections.additionalCharges ? 'bg-indigo-50 border-indigo-300' : 'border-transparent'" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 p-4 rounded-xl transition border-2 hover:border-indigo-200">
-                        <label class="block text-base md:text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
-                            <i class="fas fa-percent mr-2 text-indigo-600 text-lg"></i>Additional Charges
+                    <button @click="toggleSection('additionalCharges')" :class="[!collapsedSections.additionalCharges ? 'bg-indigo-50 border-indigo-300 p-4' : 'border-transparent p-2.5']" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 rounded-xl transition border-2 hover:border-indigo-200">
+                        <label class="block font-bold text-gray-800 uppercase tracking-wider cursor-pointer" :class="!collapsedSections.additionalCharges ? 'text-base md:text-sm' : 'text-sm'">
+                            <i class="fas fa-percent mr-2 text-indigo-600" :class="!collapsedSections.additionalCharges ? 'text-lg' : 'text-base'"></i>Tax & Tip
                             <span class="ml-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">Step 3</span>
                             <span v-if="isSectionComplete.additionalCharges && collapsedSections.additionalCharges && reviewedSections.additionalCharges" class="ml-2 text-xs font-semibold text-green-600 bg-green-100 px-2 py-1.5 rounded-lg">
                                 <i class="fas fa-check"></i>
@@ -398,8 +390,8 @@
 
                 <!-- Results Section -->
                 <div ref="resultsSection" class="mb-4">
-                    <label class="block text-lg md:text-base font-bold text-gray-800 uppercase tracking-wider mb-6 border-b-2 border-indigo-200 pb-3">
-                        <i class="fas fa-calculator mr-2 text-indigo-600 text-xl"></i>Final Split
+                    <label class="block text-base font-bold text-gray-800 uppercase tracking-wider mb-4 border-b-2 border-indigo-200 pb-2">
+                        <i class="fas fa-calculator mr-2 text-indigo-600 text-lg"></i>Final Split
                     </label>
                     <div v-if="Object.keys(calculatedTotals).length === 0" class="text-center py-8 text-gray-400">
                         <i class="fas fa-coins text-3xl mb-2"></i>
@@ -408,15 +400,15 @@
                     
                     <!-- Even Split: Show single Per Person amount -->
                     <div v-if="splitMethod === 'even' && Object.keys(calculatedTotals).length > 0"
-                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-6 md:p-4 rounded-2xl mb-4 border-2 border-indigo-200 hover:shadow-lg">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 md:w-10 md:h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg md:text-sm shadow-md">
+                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-4 md:p-3 rounded-xl mb-3 border-2 border-indigo-200 hover:shadow-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 md:w-8 md:h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-base md:text-sm shadow-md">
                                 <i class="fas fa-equals"></i>
                             </div>
-                            <span class="font-bold text-lg md:text-base text-gray-800">Per Person ({{ people.length }} {{ people.length === 1 ? 'person' : 'people' }})</span>
+                            <span class="font-bold text-base md:text-sm text-gray-800">Per Person ({{ people.length }} {{ people.length === 1 ? 'person' : 'people' }})</span>
                         </div>
                         <div class="text-right">
-                            <div class="text-3xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            <div class="text-2xl md:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                                 ${{ Object.values(calculatedTotals)[0].toFixed(2) }}
                             </div>
                         </div>
@@ -424,15 +416,23 @@
                     
                     <!-- By Dishes: Show each person's amount -->
                     <div v-if="splitMethod === 'dishes'" v-for="(total, person) in calculatedTotals" :key="person" 
-                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-6 md:p-4 rounded-2xl mb-4 border-2 border-indigo-200 hover:shadow-lg">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 md:w-10 md:h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg md:text-sm shadow-md">
+                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-4 md:p-3 rounded-xl mb-3 border-2 border-indigo-200 hover:shadow-lg">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="w-10 h-10 md:w-8 md:h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-base md:text-sm shadow-md flex-shrink-0">
                                 {{ person.charAt(0).toUpperCase() }}
                             </div>
-                            <span class="font-bold text-lg md:text-base text-gray-800">{{ person }}</span>
+                            <div class="flex-1">
+                                <div class="font-bold text-base md:text-sm text-gray-800">{{ person }}</div>
+                                <div class="flex flex-wrap gap-1 mt-1">
+                                    <span v-for="dish in dishes.filter(d => d.sharedBy.includes(person))" :key="dish.name" 
+                                        class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
+                                        {{ dish.name }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-3xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-2xl md:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                                 ${{ total.toFixed(2) }}
                             </div>
                         </div>
