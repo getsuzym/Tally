@@ -29,10 +29,22 @@ input:focus {
 
 /* Mobile-first optimizations */
 @media (max-width: 768px) {
-    /* Larger touch targets for mobile */
+    /* Larger touch targets for mobile - Apple recommends 44x44, Google 48x48 */
     button, input, select {
         min-height: 48px;
         font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Ensure all buttons meet minimum touch target */
+    button {
+        min-width: 48px;
+        padding: 12px 16px;
+    }
+    
+    /* Primary action buttons even larger */
+    .btn-transition:not(.person-tag) {
+        min-height: 52px;
+        padding: 14px 20px;
     }
     
     /* Better visual hierarchy */
@@ -42,7 +54,7 @@ input:focus {
     
     /* Reduce padding on mobile to minimize scrolling */
     body {
-        padding: 1rem !important;
+        padding: 0.75rem !important;
     }
     
     /* Compact sections on mobile */
@@ -77,5 +89,31 @@ input:focus {
     label.uppercase {
         font-size: 0.95rem !important;
         letter-spacing: 0.05em;
+    }
+    
+    /* Full width inputs on mobile */
+    input[type="text"],
+    input[type="number"],
+    select {
+        width: 100%;
+    }
+    
+    /* Stack everything vertically on mobile */
+    .flex-wrap {
+        flex-wrap: wrap;
+    }
+    
+    /* Larger card padding for better touch zones */
+    .bg-white.rounded-xl {
+        padding: 1rem !important;
+    }
+    
+    /* Add spacing between interactive elements */
+    .gap-2 {
+        gap: 0.75rem !important;
+    }
+    
+    .gap-3 {
+        gap: 1rem !important;
     }
 }
