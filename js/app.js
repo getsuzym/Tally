@@ -7,9 +7,16 @@ createApp({
         const splitMethod = ref('dishes');
         const tipCalculationMethod = ref('after-tax'); // 'before-tax' or 'after-tax'
         
-        // Collapsed sections state
+        // Collapsed sections state - Progressive disclosure: start collapsed
         const collapsedSections = ref({
-            splitMethod: false,
+            participants: false,  // Start open - first step
+            billAmount: true,     // Collapsed until participants added
+            dishes: true,         // Collapsed until participants added
+            additionalCharges: true  // Collapsed until dishes/bill entered
+        });
+        
+        // Track which sections have been opened/reviewed by user
+        const reviewedSections = ref({
             participants: false,
             billAmount: false,
             dishes: false,
@@ -22,8 +29,7 @@ createApp({
         const tipMode = ref('percent'); // 'percent' or 'amount'
         const tipAmount = ref(0);
         const dishes = ref([
-            { name: 'Pizza', price: 20, sharedBy: ['Person 1', 'Person 2'] },
-            { name: 'Soda', price: 3, sharedBy: ['Person 1'] }
+            { name: 'Pizza', price: 0, sharedBy: ['Person 1', 'Person 2'], isEdited: false }
         ]);
 
         // Even split
@@ -74,7 +80,19 @@ createApp({
         };
 
         const addDish = () => {
-            dishes.value.push({ name: '', price: 0, sharedBy: [] });
+            dishes.value.push({ name: '', price: 0, sharedBy: [], isEdited: true });
+        };
+
+        const handleDishNameFocus = (index, event) => {
+            const dish = dishes.value[index];
+            // If dish hasn't been manually edited yet, clear the default name
+            if (!dish.isEdited) {
+                dish.name = '';
+                dish.isEdited = true;
+            } else {
+                // Otherwise, select all text for easy editing
+                event.target.select();
+            }
         };
 
         const removeDish = (index) => {
@@ -150,7 +168,12 @@ createApp({
         };
 
         const toggleSection = (section) => {
+            const wasCollapsed = collapsedSections.value[section];
             collapsedSections.value[section] = !collapsedSections.value[section];
+            // Mark as reviewed when user manually opens it
+            if (wasCollapsed && !collapsedSections.value[section]) {
+                reviewedSections.value[section] = true;
+            }
         };
 
         const setQuickTip = (percent, mode = 'even') => {
@@ -440,12 +463,58 @@ createApp({
 
         const isSectionComplete = computed(() => {
             return {
-                splitMethod: true, // Always complete once selected
                 participants: people.value.length > 0,
                 billAmount: splitMethod.value === 'even' ? totalBill.value > 0 : true,
                 dishes: splitMethod.value === 'dishes' ? dishes.value.length > 0 : true,
                 additionalCharges: true // Optional, so always "complete"
             };
+        });
+
+        // Progressive disclosure: Auto-expand next section when current is complete
+        watch(() => isSectionComplete.value.participants, (isComplete) => {
+            if (isComplete && people.value.length > 0) {
+                // Auto-collapse participants after adding people
+                setTimeout(() => {
+                    collapsedSections.value.participants = true;
+                    // Mark as reviewed since user just interacted with it
+                    reviewedSections.value.participants = true;
+                    // Open dishes section
+                    collapsedSections.value.dishes = false;
+                }, 500);
+            }
+        });
+
+        watch(() => isSectionComplete.value.dishes, (isComplete) => {
+            if (isComplete && splitMethod.value === 'dishes' && dishes.value.length > 0) {
+                // Auto-collapse dishes section
+                setTimeout(() => {
+                    collapsedSections.value.dishes = true;
+                    // Open additional charges section
+                    collapsedSections.value.additionalCharges = false;
+                }, 500);
+            }
+        });
+
+        watch(() => isSectionComplete.value.billAmount, (isComplete) => {
+            if (isComplete && splitMethod.value === 'even' && totalBill.value > 0) {
+                // Auto-collapse bill amount
+                setTimeout(() => {
+                    collapsedSections.value.billAmount = true;
+                }, 500);
+            }
+        });
+        
+        // Track when sections are opened (not auto-opened)
+        watch(() => collapsedSections.value.dishes, (isCollapsed) => {
+            if (!isCollapsed) {
+                reviewedSections.value.dishes = true;
+            }
+        });
+        
+        watch(() => collapsedSections.value.additionalCharges, (isCollapsed) => {
+            if (!isCollapsed) {
+                reviewedSections.value.additionalCharges = true;
+            }
         });
 
         return { 
@@ -479,6 +548,7 @@ createApp({
             collapsedSections,
             numberOfPeople,
             isSectionComplete,
+            reviewedSections,
             firstPersonTotal,
             peopleTotalsList,
             visibleStickyPeople,
@@ -486,7 +556,8 @@ createApp({
             addPerson, 
             removePerson, 
             addDish, 
-            removeDish, 
+            removeDish,
+            handleDishNameFocus,
             togglePerson,
             handleReceiptUpload,
             addSuggestedDish,
