@@ -40,14 +40,29 @@ createApp({
         const suggestedDishes = ref([]);
         const resultsSection = ref(null);
         const showStickyDetails = ref(false);
-        const showStickySummary = ref(true);
+        const showStickySummary = ref(false);
+        const showAdvancedFeatures = ref(false);
 
         const addPerson = () => {
-            if (newPerson.value.trim()) {
-                if (!people.value.includes(newPerson.value.trim())) {
-                    people.value.push(newPerson.value.trim());
-                    newPerson.value = '';
-                }
+            let nameToAdd = newPerson.value.trim();
+            
+            // If empty, auto-generate name
+            if (!nameToAdd) {
+                // Find the highest Person # number
+                let maxNum = 0;
+                people.value.forEach(person => {
+                    const match = person.match(/^Person (\d+)$/);
+                    if (match) {
+                        maxNum = Math.max(maxNum, parseInt(match[1]));
+                    }
+                });
+                nameToAdd = `Person ${maxNum + 1}`;
+            }
+            
+            // Add if not duplicate
+            if (!people.value.includes(nameToAdd)) {
+                people.value.push(nameToAdd);
+                newPerson.value = '';
             }
         };
 
@@ -460,6 +475,7 @@ createApp({
             resultsSection,
             showStickyDetails,
             showStickySummary,
+            showAdvancedFeatures,
             collapsedSections,
             numberOfPeople,
             isSectionComplete,
