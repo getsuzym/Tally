@@ -26,3 +26,56 @@ body {
 input:focus {
     outline: none;
 }
+
+/* Mobile-first optimizations */
+@media (max-width: 768px) {
+    /* Larger touch targets for mobile */
+    button, input, select {
+        min-height: 48px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Better visual hierarchy */
+    h1 {
+        font-size: 2.5rem !important;
+    }
+    
+    /* Reduce padding on mobile to minimize scrolling */
+    body {
+        padding: 1rem !important;
+    }
+    
+    /* Compact sections on mobile */
+    .max-w-3xl {
+        padding: 0;
+    }
+    
+    /* Better spacing for one task per screen */
+    .border-b {
+        margin-bottom: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+    
+    /* Make dish items more prominent */
+    .dish-item {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Improve button visibility */
+    .btn-transition {
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Better header spacing */
+    .text-center.mb-8 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Collapsible section headers more prominent */
+    label.uppercase {
+        font-size: 0.95rem !important;
+        letter-spacing: 0.05em;
+    }
+}

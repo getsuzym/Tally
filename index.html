@@ -28,25 +28,25 @@
 
                 <!-- Split Method Toggle -->
                 <div class="mb-8 pb-8 border-b border-gray-200">
-                    <button @click="toggleSection('splitMethod')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
-                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
-                            <i class="fas fa-layer-group mr-2 text-indigo-600"></i>Splitting Method
-                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 1</span>
-                            <span v-if="isSectionComplete.splitMethod && collapsedSections.splitMethod" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                    <button @click="toggleSection('splitMethod')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 p-4 rounded-xl transition border-2 border-transparent hover:border-indigo-200">
+                        <label class="block text-base md:text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-layer-group mr-2 text-indigo-600 text-lg"></i>Splitting Method
+                            <span class="ml-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">Step 1</span>
+                            <span v-if="isSectionComplete.splitMethod && collapsedSections.splitMethod" class="ml-2 text-xs font-semibold text-green-600 bg-green-100 px-3 py-1.5 rounded-lg">
                                 <i class="fas fa-check mr-1"></i>Complete
                             </span>
                         </label>
-                        <i :class="collapsedSections.splitMethod ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400"></i>
+                        <i :class="collapsedSections.splitMethod ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400 text-xl"></i>
                     </button>
                     <div v-show="!collapsedSections.splitMethod" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <button @click="splitMethod = 'even'" 
                             :class="splitMethod === 'even' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300'"
-                            class="btn-transition py-3 rounded-lg font-medium transition">
+                            class="btn-transition py-3 rounded-lg font-medium transition hidden">
                             <i class="fas fa-equals mr-2"></i>Even Split
                         </button>
                         <button @click="splitMethod = 'dishes'" 
                             :class="splitMethod === 'dishes' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300'"
-                            class="btn-transition py-3 rounded-lg font-medium transition">
+                            class="btn-transition py-5 md:py-3 rounded-xl font-semibold text-lg transition">
                             <i class="fas fa-utensils mr-2"></i>By Dishes
                         </button>
                     </div>
@@ -54,10 +54,10 @@
 
                 <!-- Friends Section -->
                 <div class="mb-8 pb-8 border-b border-gray-200">
-                    <button @click="toggleSection('participants')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
-                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
-                            <i class="fas fa-users mr-2 text-indigo-600"></i>{{ splitMethod === 'even' ? 'Number of People' : 'Participants' }}
-                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 2</span>
+                    <button @click="toggleSection('participants')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 p-4 rounded-xl transition border-2 border-transparent hover:border-indigo-200">
+                        <label class="block text-base md:text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-users mr-2 text-indigo-600 text-lg"></i>{{ splitMethod === 'even' ? 'Number of People' : 'Participants' }}
+                            <span class="ml-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">Step 2</span>
                             <span v-if="isSectionComplete.participants && collapsedSections.participants" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
                                 <i class="fas fa-check mr-1"></i>Complete
                             </span>
@@ -78,21 +78,21 @@
 
                     <!-- By Dishes: Name-Based Input -->
                     <div v-else>
-                        <div class="flex gap-2 mb-4">
+                        <div class="flex flex-col gap-3 mb-4">
                             <input v-model="newPerson" @keyup.enter="addPerson" type="text" placeholder="Enter name" 
-                                class="flex-grow px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 transition">
-                            <button @click="addPerson" class="btn-transition bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg">
-                                <i class="fas fa-plus mr-2"></i>Add
+                                class="w-full px-6 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition">
+                            <button @click="addPerson" class="btn-transition bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-5 rounded-xl font-semibold text-lg hover:shadow-lg">
+                                <i class="fas fa-plus mr-2"></i>Add Person
                             </button>
                         </div>
                         <div v-if="people.length > 0">
-                            <p class="text-xs text-gray-500 mb-2"><i class="fas fa-hand-pointer mr-1"></i>Tap a name to remove that person.</p>
-                            <div class="flex flex-wrap gap-2">
+                            <p class="text-sm font-medium text-gray-600 mb-3"><i class="fas fa-hand-pointer mr-1"></i>Tap a name to remove</p>
+                            <div class="flex flex-wrap gap-3">
                                 <button v-for="person in people" :key="person"
                                     @click="removePerson(person)"
-                                    class="person-tag flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-gray-800 px-4 py-2 rounded-full border border-indigo-200 hover:border-red-200 hover:bg-red-50 transition">
-                                    <span class="font-medium">{{ person }}</span>
-                                    <i class="fas fa-times text-gray-500"></i>
+                                    class="person-tag flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-gray-800 px-5 py-3 text-base rounded-full border-2 border-indigo-200 hover:border-red-300 hover:bg-red-50 transition font-medium">
+                                    <span>{{ person }}</span>
+                                    <i class="fas fa-times text-lg text-gray-500"></i>
                                 </button>
                             </div>
                         </div>
@@ -156,20 +156,25 @@
                             <!-- Quick Tip & Calculation Method Buttons (only visible for percentage mode) -->
                             <div v-if="evenTipMode === 'percent'" class="flex items-center gap-2 flex-wrap">
                                 <span class="text-xs text-gray-500">Quick:</span>
+                                <button @click="setQuickTip(0, 'even')" 
+                                    :class="evenTipPercent === 0 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2 py-1 rounded font-medium transition duration-200">
+                                    0%
+                                </button>
+                                <button @click="setQuickTip(10, 'even')" 
+                                    :class="evenTipPercent === 10 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2 py-1 rounded font-medium transition duration-200">
+                                    10%
+                                </button>
+                                <button @click="setQuickTip(12, 'even')" 
+                                    :class="evenTipPercent === 12 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="btn-transition text-xs px-2 py-1 rounded font-medium transition duration-200">
+                                    12%
+                                </button>
                                 <button @click="setQuickTip(15, 'even')" 
                                     :class="evenTipPercent === 15 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                    class="btn-transition text-xs px-2 py-1 rounded font-medium transition duration-200">
                                     15%
-                                </button>
-                                <button @click="setQuickTip(18, 'even')" 
-                                    :class="evenTipPercent === 18 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
-                                    18%
-                                </button>
-                                <button @click="setQuickTip(20, 'even')" 
-                                    :class="evenTipPercent === 20 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
-                                    20%
                                 </button>
                                 <span class="text-xs text-gray-400 mx-2">|</span>
                                 <span class="text-xs text-gray-500">Calculate:</span>
@@ -204,25 +209,27 @@
 
                 <!-- By Dishes Section -->
                 <div v-if="splitMethod === 'dishes'" class="mt-10 mb-8 pb-8 border-b border-gray-200">
-                    <button @click="toggleSection('dishes')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
-                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
-                            <i class="fas fa-utensils mr-2 text-indigo-600"></i>Dishes
-                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 3</span>
-                            <span v-if="isSectionComplete.dishes && collapsedSections.dishes" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                    <button @click="toggleSection('dishes')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 p-4 rounded-xl transition border-2 border-transparent hover:border-indigo-200">
+                        <label class="block text-base md:text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-utensils mr-2 text-indigo-600 text-lg"></i>Dishes
+                            <span class="ml-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">Step 3</span>
+                            <span v-if="isSectionComplete.dishes && collapsedSections.dishes" class="ml-2 text-xs font-semibold text-green-600 bg-green-100 px-3 py-1.5 rounded-lg">
                                 <i class="fas fa-check mr-1"></i>Complete
                             </span>
                         </label>
-                        <i :class="collapsedSections.dishes ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400"></i>
+                        <i :class="collapsedSections.dishes ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400 text-xl"></i>
                     </button>
                     <div v-show="!collapsedSections.dishes">
-                    <!-- Quick Start Receipt Scanner -->
-                    <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
-                        <div class="flex items-center justify-between mb-3">
-                            <label class="text-sm font-bold text-gray-800 uppercase tracking-wider">
-                                <i class="fas fa-camera mr-2 text-blue-600"></i>Quick Start
-                                <span class="ml-2 text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">Optional</span>
-                            </label>
-                        </div>
+                    <!-- Advanced Features (Receipt Scanner) -->
+                    <div class="mb-6">
+                        <button @click="showAdvancedFeatures = !showAdvancedFeatures" class="w-full mb-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 hover:border-blue-300 transition flex items-center justify-between shadow-sm">
+                            <span class="text-sm md:text-xs font-bold text-gray-700">
+                                <i class="fas fa-magic mr-2 text-blue-600 text-lg md:text-base"></i>Advanced: Scan Receipt
+                                <span class="ml-2 text-xs font-semibold text-blue-600 bg-blue-100 px-3 py-1.5 rounded-lg">Optional</span>
+                            </span>
+                            <i :class="showAdvancedFeatures ? 'fa-chevron-up' : 'fa-chevron-down'" class="fas text-gray-400 text-lg"></i>
+                        </button>
+                    <div v-show="showAdvancedFeatures" class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
                         <input type="file" ref="receiptInput" @change="handleReceiptUpload" accept="image/*" 
                             class="hidden">
                         <div class="flex gap-2">
@@ -250,43 +257,46 @@
                             </div>
                         </div>
                     </div>
+                    </div>
 
-                    <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
+                    <label class="block text-lg font-bold text-gray-800 uppercase tracking-wider mb-4">
                         <i class="fas fa-list mr-2 text-indigo-600"></i>Dish List
                     </label>
                     <div v-if="dishes.length === 0" class="text-center py-8 text-gray-400">
                         <i class="fas fa-plate-wheat text-3xl mb-2"></i>
                         <p class="text-sm">No dishes added yet</p>
                     </div>
-                    <div v-for="(dish, index) in dishes" :key="index" class="dish-item bg-gray-50 rounded-lg p-2 mb-2 border border-gray-200 space-y-1">
+                    <div v-for="(dish, index) in dishes" :key="index" class="dish-item bg-white rounded-lg p-3 mb-3 border border-gray-200 space-y-2 shadow-sm">
                         <!-- Dish name and price row -->
-                        <div class="flex gap-2 items-end">
+                        <div class="flex flex-col gap-2">
                             <input v-model="dish.name" placeholder="Dish name" 
-                                class="flex-grow px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            <div class="flex items-center gap-1">
-                                <span class="text-gray-500 text-xs">$</span>
-                                <input v-model.number="dish.price" type="number" placeholder="0.00" @focus="$event.target.select()" 
-                                    class="w-16 px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-right">
+                                class="w-full px-3 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-1 flex-grow">
+                                    <span class="text-gray-500 text-base font-semibold">$</span>
+                                    <input v-model.number="dish.price" type="number" placeholder="0.00" @focus="$event.target.select()" 
+                                        class="flex-grow px-2 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-right">
+                                </div>
+                                <button @click="removeDish(index)" class="btn-transition text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-lg transition flex-shrink-0" title="Delete dish">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
-                            <button @click="removeDish(index)" class="btn-transition text-red-500 hover:text-red-700 hover:bg-red-100 px-1.5 py-1 rounded text-xs transition flex-shrink-0">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </div>
                         <!-- Shared by row -->
-                        <div class="flex flex-wrap gap-1 items-center">
+                        <div class="flex flex-wrap gap-1.5 items-center">
                             <button v-for="person in people" :key="person" 
                                 @click="togglePerson(index, person)"
-                                :class="dish.sharedBy.includes(person) ? 'bg-green-500 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
-                                class="btn-transition text-xs px-2 py-0.5 rounded font-medium transition">
-                                <i :class="dish.sharedBy.includes(person) ? 'fas fa-check' : ''"></i> {{ person }}
+                                :class="dish.sharedBy.includes(person) ? 'bg-green-500 text-white shadow-sm' : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'"
+                                class="btn-transition text-sm px-3 py-1.5 rounded-lg font-medium transition">
+                                <i :class="dish.sharedBy.includes(person) ? 'fas fa-check mr-1' : ''"></i>{{ person }}
                             </button>
                             <button @click="splitDishEvenly(index)" 
-                                class="btn-transition text-xs px-2 py-0.5 rounded font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition border border-indigo-200">
+                                class="btn-transition text-sm px-3 py-1.5 rounded-lg font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition border border-indigo-200">
                                 <i class="fas fa-users mr-1"></i>All
                             </button>
                         </div>
                     </div>
-                    <button @click="addDish" class="btn-transition w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-medium py-3 rounded-lg transition border border-indigo-200">
+                    <button @click="addDish" class="btn-transition w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-5 text-lg rounded-xl transition shadow-md">
                         <i class="fas fa-plus mr-2"></i>Add Another Dish
                     </button>
                     </div>
@@ -294,75 +304,80 @@
 
                 <!-- Tax & Tip Section -->
                 <div v-if="splitMethod === 'dishes'" class="mb-8 pb-8 border-b border-gray-200">
-                    <button @click="toggleSection('additionalCharges')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-gray-50 p-2 rounded-lg transition">
-                        <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
-                            <i class="fas fa-percent mr-2 text-indigo-600"></i>Additional Charges
-                            <span class="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Step 4</span>
-                            <span v-if="isSectionComplete.additionalCharges && collapsedSections.additionalCharges" class="ml-2 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                    <button @click="toggleSection('additionalCharges')" class="w-full flex items-center justify-between text-left mb-4 hover:bg-indigo-50 p-4 rounded-xl transition border-2 border-transparent hover:border-indigo-200">
+                        <label class="block text-base md:text-sm font-bold text-gray-800 uppercase tracking-wider cursor-pointer">
+                            <i class="fas fa-percent mr-2 text-indigo-600 text-lg"></i>Additional Charges
+                            <span class="ml-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">Step 4</span>
+                            <span v-if="isSectionComplete.additionalCharges && collapsedSections.additionalCharges" class="ml-2 text-xs font-semibold text-green-600 bg-green-100 px-3 py-1.5 rounded-lg">
                                 <i class="fas fa-check mr-1"></i>Complete
                             </span>
                         </label>
-                        <i :class="collapsedSections.additionalCharges ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400"></i>
+                        <i :class="collapsedSections.additionalCharges ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas text-gray-400 text-xl"></i>
                     </button>
 
                     <div v-show="!collapsedSections.additionalCharges">
                     <!-- Tax One-Line Input -->
-                    <div class="mb-4 flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-                        <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tax:</label>
-                        <div class="flex items-center gap-1">
+                    <div class="mb-4 flex items-center gap-3 p-4 bg-white rounded-xl border-2 border-gray-200 shadow-sm">
+                        <label class="text-sm md:text-xs font-bold text-gray-700 whitespace-nowrap">Tax:</label>
+                        <div class="flex items-center gap-2">
                             <input v-model.number="taxPercent" type="number" placeholder="5" @focus="$event.target.select()" 
-                                class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
-                            <span class="text-base text-gray-500">%</span>
+                                class="text-lg md:text-base font-bold bg-transparent text-gray-700 w-16 md:w-12 border-b-2 border-gray-300 focus:ring-0 p-0 focus:border-indigo-500">
+                            <span class="text-lg md:text-base text-gray-500 font-semibold">%</span>
                         </div>
-                        <span class="text-xs text-gray-500">${{ computedDishTaxAmount.toFixed(2) }}</span>
+                        <span class="text-sm md:text-xs text-gray-500 font-medium ml-auto">${{ computedDishTaxAmount.toFixed(2) }}</span>
                     </div>
 
                     <!-- Tip One-Line Input with Calculation Method -->
-                    <div class="flex flex-col gap-3 p-3 bg-white rounded-lg border border-gray-200">
-                        <div class="flex items-center gap-3 flex-1">
-                            <label class="text-xs font-semibold text-gray-700 whitespace-nowrap">Tip:</label>
-                            <select v-model="tipMode" class="px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 bg-white font-medium hover:border-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-200 transition">
+                    <div class="flex flex-col gap-3 p-4 bg-white rounded-xl border-2 border-gray-200 shadow-sm">
+                        <div class="flex items-center gap-3 flex-1 flex-wrap">
+                            <label class="text-sm md:text-xs font-bold text-gray-700 whitespace-nowrap">Tip:</label>
+                            <select v-model="tipMode" class="px-3 py-2 md:py-1 border-2 border-gray-300 rounded-lg text-sm md:text-xs text-gray-700 bg-white font-semibold hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition">
                                 <option value="percent">%</option>
                                 <option value="amount">$</option>
                             </select>
-                            <div class="flex items-center gap-1">
+                            <div class="flex items-center gap-2">
                                 <input v-if="tipMode === 'percent'" v-model.number="tipPercent" type="number" @focus="$event.target.select()" 
-                                    class="text-base font-semibold bg-transparent text-gray-700 w-12 border-b border-gray-300 focus:ring-0 p-0 focus:border-gray-500">
+                                    class="text-lg md:text-base font-bold bg-transparent text-gray-700 w-16 md:w-12 border-b-2 border-gray-300 focus:ring-0 p-0 focus:border-indigo-500">
                                 <input v-else v-model.number="tipAmount" type="number" placeholder="0.00" @focus="$event.target.select()"
-                                    class="text-base font-semibold bg-transparent text-gray-700 w-16 border-b border-gray-300 focus:ring-0 p-0 text-right focus:border-gray-500">
-                                <span class="text-base text-gray-500">{{ tipMode === 'percent' ? '%' : '' }}</span>
+                                    class="text-lg md:text-base font-bold bg-transparent text-gray-700 w-20 md:w-16 border-b-2 border-gray-300 focus:ring-0 p-0 text-right focus:border-indigo-500">
+                                <span class="text-lg md:text-base text-gray-500 font-semibold">{{ tipMode === 'percent' ? '%' : '' }}</span>
                             </div>
-                            <span class="text-xs text-gray-500">{{ tipMode === 'percent' ? computedDishTipAmount.toFixed(2) + ' $' : computedDishTipPercent.toFixed(1) + '%' }}</span>
+                            <span class="text-sm md:text-xs text-gray-500 font-medium ml-auto">{{ tipMode === 'percent' ? computedDishTipAmount.toFixed(2) + ' $' : computedDishTipPercent.toFixed(1) + '%' }}</span>
                         </div>
                         
                         <!-- Quick Tip & Calculation Method Buttons (only visible for percentage mode) -->
                         <div v-if="tipMode === 'percent'" class="flex items-center gap-2 flex-wrap">
-                            <span class="text-xs text-gray-500">Quick:</span>
+                            <span class="text-xs text-gray-600 font-semibold">Quick:</span>
+                            <button @click="setQuickTip(0, 'dishes')" 
+                                :class="tipPercent === 0 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                class="btn-transition text-xs px-2.5 py-1.5 rounded-lg font-semibold transition duration-200">
+                                0%
+                            </button>
+                            <button @click="setQuickTip(10, 'dishes')" 
+                                :class="tipPercent === 10 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                class="btn-transition text-xs px-2.5 py-1.5 rounded-lg font-semibold transition duration-200">
+                                10%
+                            </button>
+                            <button @click="setQuickTip(12, 'dishes')" 
+                                :class="tipPercent === 12 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                class="btn-transition text-xs px-2.5 py-1.5 rounded-lg font-semibold transition duration-200">
+                                12%
+                            </button>
                             <button @click="setQuickTip(15, 'dishes')" 
                                 :class="tipPercent === 15 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                class="btn-transition text-xs px-2.5 py-1.5 rounded-lg font-semibold transition duration-200">
                                 15%
                             </button>
-                            <button @click="setQuickTip(18, 'dishes')" 
-                                :class="tipPercent === 18 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
-                                18%
-                            </button>
-                            <button @click="setQuickTip(20, 'dishes')" 
-                                :class="tipPercent === 20 ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
-                                20%
-                            </button>
-                            <span class="text-xs text-gray-400 mx-2">|</span>
-                            <span class="text-xs text-gray-500">Calculate:</span>
+                            <span class="text-sm md:text-xs text-gray-400 mx-1 hidden md:inline">|</span>
+                            <span class="text-xs text-gray-600 font-semibold">Calc:</span>
                             <button @click="tipCalculationMethod = 'after-tax'" 
                                 :class="tipCalculationMethod === 'after-tax' ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                class="btn-transition text-xs px-2.5 py-1.5 rounded-lg font-semibold transition duration-200">
                                 After Tax
                             </button>
                             <button @click="tipCalculationMethod = 'before-tax'" 
                                 :class="tipCalculationMethod === 'before-tax' ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                class="btn-transition text-xs px-2.5 py-1 rounded font-medium transition duration-200">
+                                class="btn-transition text-xs px-2.5 py-1.5 rounded-lg font-semibold transition duration-200">
                                 Before Tax
                             </button>
                         </div>
@@ -372,8 +387,8 @@
 
                 <!-- Results Section -->
                 <div ref="resultsSection" class="mb-4">
-                    <label class="block text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
-                        <i class="fas fa-calculator mr-2 text-indigo-600"></i>Final Split
+                    <label class="block text-lg md:text-base font-bold text-gray-800 uppercase tracking-wider mb-6 border-b-2 border-indigo-200 pb-3">
+                        <i class="fas fa-calculator mr-2 text-indigo-600 text-xl"></i>Final Split
                     </label>
                     <div v-if="Object.keys(calculatedTotals).length === 0" class="text-center py-8 text-gray-400">
                         <i class="fas fa-coins text-3xl mb-2"></i>
@@ -382,15 +397,15 @@
                     
                     <!-- Even Split: Show single Per Person amount -->
                     <div v-if="splitMethod === 'even' && Object.keys(calculatedTotals).length > 0"
-                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-3 border border-indigo-100 hover:shadow-md">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-6 md:p-4 rounded-2xl mb-4 border-2 border-indigo-200 hover:shadow-lg">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 md:w-10 md:h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg md:text-sm shadow-md">
                                 <i class="fas fa-equals"></i>
                             </div>
-                            <span class="font-semibold text-gray-800">Per Person ({{ people.length }} {{ people.length === 1 ? 'person' : 'people' }})</span>
+                            <span class="font-bold text-lg md:text-base text-gray-800">Per Person ({{ people.length }} {{ people.length === 1 ? 'person' : 'people' }})</span>
                         </div>
                         <div class="text-right">
-                            <div class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            <div class="text-3xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                                 ${{ Object.values(calculatedTotals)[0].toFixed(2) }}
                             </div>
                         </div>
@@ -398,15 +413,15 @@
                     
                     <!-- By Dishes: Show each person's amount -->
                     <div v-if="splitMethod === 'dishes'" v-for="(total, person) in calculatedTotals" :key="person" 
-                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-3 border border-indigo-100 hover:shadow-md">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                        class="result-card flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 p-6 md:p-4 rounded-2xl mb-4 border-2 border-indigo-200 hover:shadow-lg">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 md:w-10 md:h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg md:text-sm shadow-md">
                                 {{ person.charAt(0).toUpperCase() }}
                             </div>
-                            <span class="font-semibold text-gray-800">{{ person }}</span>
+                            <span class="font-bold text-lg md:text-base text-gray-800">{{ person }}</span>
                         </div>
                         <div class="text-right">
-                            <div class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            <div class="text-3xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                                 ${{ total.toFixed(2) }}
                             </div>
                         </div>
