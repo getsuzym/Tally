@@ -170,8 +170,12 @@ createApp({
         const toggleSection = (section) => {
             const wasCollapsed = collapsedSections.value[section];
             collapsedSections.value[section] = !collapsedSections.value[section];
-            // Mark as reviewed when user manually opens it
-            if (wasCollapsed && !collapsedSections.value[section]) {
+            // Mark as reviewed when user opens or closes the section
+            if (wasCollapsed) {
+                // Opening the section
+                reviewedSections.value[section] = true;
+            } else {
+                // Closing the section - also mark as reviewed
                 reviewedSections.value[section] = true;
             }
         };
