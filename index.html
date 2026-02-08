@@ -254,9 +254,9 @@
                                 :class="!dish.isEdited && dish.name ? 'text-gray-400 italic' : ''"
                                 class="flex-1 px-3 py-2.5 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-w-0">
                             <div class="flex items-center gap-1 flex-shrink-0">
-                                <span class="text-gray-500 text-base font-semibold">$</span>
+                                <span class="text-gray-500 text-lg font-semibold">$</span>
                                 <input v-model.number="dish.price" type="number" inputmode="decimal" step="0.01" placeholder="0" @focus="$event.target.select()" 
-                                    class="w-14 px-1 py-2.5 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-right">
+                                    class="w-20 px-2 py-2.5 text-lg font-semibold border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-right">
                             </div>
                             <button @click="removeDish(index)" class="btn-transition text-red-500 hover:text-white hover:bg-red-500 w-8 h-8 rounded-md transition flex-shrink-0 border border-red-300 hover:border-red-500 flex items-center justify-center" title="Delete">
                                 <i class="fas fa-trash text-xs"></i>
