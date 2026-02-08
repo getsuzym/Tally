@@ -420,7 +420,7 @@
                                 <div class="flex flex-wrap gap-1 mt-1">
                                     <span v-for="dish in dishes.filter(d => d.sharedBy.includes(person))" :key="dish.name" 
                                         class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
-                                        {{ dish.name }}
+                                        {{ dish.name }} <span class="font-semibold">${{ dish.price.toFixed(2) }}</span>
                                     </span>
                                 </div>
                             </div>
