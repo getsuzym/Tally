@@ -43,7 +43,9 @@ createApp({
         const receiptInput = ref(null);
         const ocrProcessing = ref(false);
         const extractedText = ref('');
-        const suggestedDishes = ref([]);
+        const showExtractedText = ref(false);
+        const parsedItems = ref([]); // { name, price, selected } awaiting user review
+        const parsedCharges = ref({ subtotal: null, tax: null, tip: null, total: null });
         const resultsSection = ref(null);
         const showStickyDetails = ref(false);
         const showStickySummary = ref(false);
@@ -106,61 +108,99 @@ createApp({
             else sharedList.push(person);
         };
 
+        const resetParsedReceipt = () => {
+            parsedItems.value = [];
+            parsedCharges.value = { subtotal: null, tax: null, tip: null, total: null };
+        };
+
         const handleReceiptUpload = async (event) => {
             const file = event.target.files[0];
             if (!file) return;
 
             ocrProcessing.value = true;
             extractedText.value = '';
-            suggestedDishes.value = [];
+            showExtractedText.value = false;
+            resetParsedReceipt();
 
             try {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        const { data: { text } } = await Tesseract.recognize(e.target.result, 'eng');
-                        extractedText.value = text;
-                        
-                        // Extract potential dish names (capitalized words and common patterns)
-                        const lines = text.split('\n');
-                        const potential = new Set();
-                        
-                        lines.forEach(line => {
-                            const cleaned = line.trim();
-                            if (cleaned.length > 2 && cleaned.length < 50) {
-                                // Remove common words and numbers
-                                const words = cleaned.split(/\s+/);
-                                const filtered = words.filter(w => 
-                                    w.length > 2 && 
-                                    !/^\d+(\.\d{2})?$/.test(w) && 
-                                    !/^[\$€£¥]/.test(w) &&
-                                    !['the', 'and', 'with', 'sauce', 'total', 'subtotal', 'tax', 'tip', 'amount', 'price', 'cost'].includes(w.toLowerCase())
-                                ).join(' ');
-                                
-                                if (filtered && filtered.length > 2) {
-                                    potential.add(filtered);
-                                }
-                            }
-                        });
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = () => reject(new Error('Could not read the selected file.'));
+                    reader.readAsDataURL(file);
+                });
 
-                        // Convert to array and limit suggestions
-                        suggestedDishes.value = Array.from(potential).slice(0, 15);
-                    } catch (err) {
-                        console.error('OCR Error:', err);
-                        extractedText.value = 'Error processing image. Please try again.';
-                    }
-                    ocrProcessing.value = false;
-                };
-                reader.readAsDataURL(file);
+                const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng');
+                extractedText.value = text;
+
+                const { items, charges } = ReceiptParser.parseReceipt(text);
+                parsedItems.value = items;
+                parsedCharges.value = charges;
             } catch (err) {
-                console.error('Error:', err);
+                console.error('Receipt scan error:', err);
+                extractedText.value = 'Could not process this image. Try a sharper, straight-on photo.';
+            } finally {
                 ocrProcessing.value = false;
+                event.target.value = ''; // let the same file be re-selected
             }
         };
 
-        const addSuggestedDish = (dishName) => {
-            dishes.value.push({ name: dishName, price: 0, sharedBy: [] });
-            suggestedDishes.value = suggestedDishes.value.filter(d => d !== dishName);
+        const selectedParsedItems = computed(() =>
+            parsedItems.value.filter(i => i.selected && String(i.name).trim())
+        );
+
+        const parsedItemsSubtotal = computed(() =>
+            selectedParsedItems.value.reduce((sum, i) => sum + (Number(i.price) || 0), 0)
+        );
+
+        // Cross-check parsed items against the receipt's own subtotal/total.
+        const parsedReceiptCheck = computed(() => {
+            const c = parsedCharges.value;
+            let target = c.subtotal;
+            if (target == null && c.total != null) {
+                target = c.total - (c.tax || 0) - (c.tip || 0);
+            }
+            if (target == null || target <= 0) return null;
+            const diff = parsedItemsSubtotal.value - target;
+            return { target, diff, ok: Math.abs(diff) / target <= 0.02 };
+        });
+
+        const removeParsedItem = (index) => {
+            parsedItems.value.splice(index, 1);
+        };
+
+        const applyParsedReceipt = () => {
+            const chosen = selectedParsedItems.value;
+            if (chosen.length === 0) return;
+
+            chosen.forEach(i => {
+                dishes.value.push({
+                    name: String(i.name).trim(),
+                    price: Number(i.price) || 0,
+                    sharedBy: [],
+                    isEdited: true
+                });
+            });
+
+            const fallbackBase = chosen.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+            const percents = ReceiptParser.derivePercents(
+                parsedCharges.value,
+                fallbackBase,
+                tipCalculationMethod.value === 'after-tax'
+            );
+            if (percents.taxPercent != null) taxPercent.value = percents.taxPercent;
+            if (percents.tipPercent != null) {
+                tipMode.value = 'percent';
+                tipPercent.value = percents.tipPercent;
+            }
+
+            discardParsedReceipt();
+        };
+
+        const discardParsedReceipt = () => {
+            resetParsedReceipt();
+            extractedText.value = '';
+            showExtractedText.value = false;
         };
 
         const splitDishEvenly = (dishIndex) => {
@@ -544,7 +584,12 @@ createApp({
             receiptInput,
             ocrProcessing,
             extractedText,
-            suggestedDishes,
+            showExtractedText,
+            parsedItems,
+            parsedCharges,
+            selectedParsedItems,
+            parsedItemsSubtotal,
+            parsedReceiptCheck,
             resultsSection,
             showStickyDetails,
             showStickySummary,
@@ -564,7 +609,9 @@ createApp({
             handleDishNameFocus,
             togglePerson,
             handleReceiptUpload,
-            addSuggestedDish,
+            removeParsedItem,
+            applyParsedReceipt,
+            discardParsedReceipt,
             splitDishEvenly,
             toggleSection,
             setQuickTip,
