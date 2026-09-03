@@ -213,12 +213,21 @@
                     <div v-show="showAdvancedFeatures" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <input type="file" ref="receiptInput" @change="handleReceiptUpload" accept="image/*"
                             class="hidden">
+                        <div class="flex gap-1.5 mb-2">
+                            <button v-for="opt in [{v:'eng',l:'English'},{v:'chi_sim+chi_tra',l:'中文'},{v:'eng+chi_sim+chi_tra',l:'EN + 中文'}]" :key="opt.v"
+                                @click="receiptLang = opt.v" :disabled="ocrProcessing"
+                                :class="receiptLang === opt.v ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'"
+                                class="btn-transition flex-1 px-2 py-1 text-xs font-medium rounded-md border transition">{{ opt.l }}</button>
+                        </div>
                         <button @click="$refs.receiptInput.click()" :disabled="ocrProcessing"
                             class="btn-transition w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-3 py-2 rounded-md font-medium transition text-sm">
                             <i :class="ocrProcessing ? 'fa-spinner fa-spin' : 'fa-camera'" class="fas mr-1.5"></i>
                             {{ ocrProcessing ? 'Reading receipt…' : 'Scan Receipt' }}
                         </button>
-                        <p class="mt-2 text-xs text-gray-500">Processed on your device. OCR is imperfect — check every price before adding.</p>
+                        <p class="mt-2 text-xs text-gray-500">
+                            Processed on your device. OCR is imperfect — check every price before adding.
+                            <span v-if="receiptLang.includes('chi')">The first Chinese scan downloads a language file (a few MB, then cached).</span>
+                        </p>
 
                         <!-- Parsed line items awaiting review -->
                         <div v-if="parsedItems.length > 0" class="mt-4">
@@ -590,7 +599,7 @@
         </p>
     </footer>
 
-    <script src="js/receipt-parser.js?v=1.3"></script>
-    <script src="js/app.js?v=1.3"></script>
+    <script src="js/receipt-parser.js?v=1.4"></script>
+    <script src="js/app.js?v=1.4"></script>
 </body>
 </html>

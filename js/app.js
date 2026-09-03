@@ -44,6 +44,7 @@ createApp({
         const ocrProcessing = ref(false);
         const extractedText = ref('');
         const showExtractedText = ref(false);
+        const receiptLang = ref('eng'); // Tesseract lang string: 'eng', 'chi_sim+chi_tra', 'eng+chi_sim+chi_tra'
         const parsedItems = ref([]); // { name, price, selected } awaiting user review
         const parsedCharges = ref({ subtotal: null, tax: null, tip: null, total: null });
         const resultsSection = ref(null);
@@ -130,7 +131,13 @@ createApp({
                     reader.readAsDataURL(file);
                 });
 
-                const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng');
+                // Chinese trained data is large on the default CDN path; the "fast"
+                // models are a fraction of the size and plenty for receipts. They're
+                // cached by the browser after the first scan.
+                const recognizeOptions = receiptLang.value.includes('chi')
+                    ? { langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast' }
+                    : {};
+                const { data: { text } } = await Tesseract.recognize(dataUrl, receiptLang.value, recognizeOptions);
                 extractedText.value = text;
 
                 const { items, charges } = ReceiptParser.parseReceipt(text);
@@ -315,6 +322,7 @@ createApp({
                     if (settings.tipPercent) tipPercent.value = settings.tipPercent;
                     if (settings.evenTipPercent) evenTipPercent.value = settings.evenTipPercent;
                     if (settings.tipCalculationMethod) tipCalculationMethod.value = settings.tipCalculationMethod;
+                    if (settings.receiptLang) receiptLang.value = settings.receiptLang;
                 } catch (e) {
                     console.error('Error loading settings:', e);
                 }
@@ -322,13 +330,14 @@ createApp({
         });
 
         // Save settings to localStorage
-        watch([taxPercent, evenTaxPercent, tipPercent, evenTipPercent, tipCalculationMethod], () => {
+        watch([taxPercent, evenTaxPercent, tipPercent, evenTipPercent, tipCalculationMethod, receiptLang], () => {
             const settings = {
                 taxPercent: taxPercent.value,
                 evenTaxPercent: evenTaxPercent.value,
                 tipPercent: tipPercent.value,
                 evenTipPercent: evenTipPercent.value,
-                tipCalculationMethod: tipCalculationMethod.value
+                tipCalculationMethod: tipCalculationMethod.value,
+                receiptLang: receiptLang.value
             };
             localStorage.setItem('tallySettings', JSON.stringify(settings));
         });
@@ -585,6 +594,7 @@ createApp({
             ocrProcessing,
             extractedText,
             showExtractedText,
+            receiptLang,
             parsedItems,
             parsedCharges,
             selectedParsedItems,
