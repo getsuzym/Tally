@@ -48,6 +48,35 @@ describe('parseReceipt', () => {
         expect(parseReceipt('')).toEqual({ items: [], charges: { subtotal: null, tax: null, tip: null, total: null } });
         expect(parseReceipt(null).items).toEqual([]);
     });
+
+    test('reads Chinese item names, ¥ prefixes and 元 suffixes', () => {
+        const { items, charges } = parseReceipt(
+            [
+                '牛肉麵 ¥38.00',
+                '可 樂 5.00元',
+                '小计 43.00',
+                '服务费 4.30',
+                '总计 47.30'
+            ].join('\n')
+        );
+        expect(items).toEqual([
+            { name: '牛肉麵', price: 38, selected: true },
+            { name: '可樂', price: 5, selected: true }
+        ]);
+        expect(charges).toEqual({ subtotal: 43, tax: null, tip: 4.3, total: 47.3 });
+    });
+
+    test('classifies Chinese tax and total keywords', () => {
+        const { items, charges } = parseReceipt('宮保雞丁 28.00\n消費稅 2.24\n應付總計 30.24');
+        expect(items.map(i => i.name)).toEqual(['宮保雞丁']);
+        expect(charges.tax).toBe(2.24);
+        expect(charges.total).toBe(30.24);
+    });
+
+    test('keeps a single-character CJK item but still drops a lone latin char', () => {
+        const { items } = parseReceipt('鱼 25.00\nX 1.00');
+        expect(items).toEqual([{ name: '鱼', price: 25, selected: true }]);
+    });
 });
 
 describe('derivePercents', () => {
