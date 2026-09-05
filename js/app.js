@@ -44,7 +44,8 @@ createApp({
         const ocrProcessing = ref(false);
         const extractedText = ref('');
         const showExtractedText = ref(false);
-        const receiptLang = ref('eng'); // Tesseract lang string: 'eng', 'chi_sim+chi_tra', 'eng+chi_sim+chi_tra'
+        const visionApiKey = ref(''); // Google Cloud Vision API key, kept only in localStorage
+        const scanError = ref('');
         const parsedItems = ref([]); // { name, price, selected } awaiting user review
         const parsedCharges = ref({ subtotal: null, tax: null, tip: null, total: null });
         const resultsSection = ref(null);
@@ -114,13 +115,23 @@ createApp({
             parsedCharges.value = { subtotal: null, tax: null, tip: null, total: null };
         };
 
+        const VISION_ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate';
+
         const handleReceiptUpload = async (event) => {
             const file = event.target.files[0];
             if (!file) return;
 
+            const apiKey = visionApiKey.value.trim();
+            if (!apiKey) {
+                scanError.value = 'Add a Google Cloud Vision API key above first.';
+                event.target.value = '';
+                return;
+            }
+
             ocrProcessing.value = true;
             extractedText.value = '';
             showExtractedText.value = false;
+            scanError.value = '';
             resetParsedReceipt();
 
             try {
@@ -130,22 +141,45 @@ createApp({
                     reader.onerror = () => reject(new Error('Could not read the selected file.'));
                     reader.readAsDataURL(file);
                 });
+                const base64Image = dataUrl.split(',')[1];
 
-                // Chinese trained data is large on the default CDN path; the "fast"
-                // models are a fraction of the size and plenty for receipts. They're
-                // cached by the browser after the first scan.
-                const recognizeOptions = receiptLang.value.includes('chi')
-                    ? { langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast' }
-                    : {};
-                const { data: { text } } = await Tesseract.recognize(dataUrl, receiptLang.value, recognizeOptions);
+                const response = await fetch(`${VISION_ENDPOINT}?key=${encodeURIComponent(apiKey)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        requests: [{
+                            image: { content: base64Image },
+                            // DOCUMENT_TEXT_DETECTION is tuned for dense text (receipts,
+                            // documents) and auto-detects language, including mixed
+                            // English/Chinese on the same receipt.
+                            features: [{ type: 'DOCUMENT_TEXT_DETECTION' }]
+                        }]
+                    })
+                });
+
+                const result = await response.json();
+                // Errors can come back two ways: a top-level `error` (bad key, API not
+                // enabled, quota) or a per-image `responses[0].error` (bad image data).
+                const perImageError = result.responses && result.responses[0] && result.responses[0].error;
+                const apiError = (result.error && result.error.message) || (perImageError && perImageError.message);
+                if (!response.ok || perImageError) {
+                    throw new Error(apiError || `Vision API request failed (${response.status}).`);
+                }
+
+                const annotation = result.responses[0].fullTextAnnotation;
+                const text = annotation ? annotation.text : '';
                 extractedText.value = text;
 
-                const { items, charges } = ReceiptParser.parseReceipt(text);
-                parsedItems.value = items;
-                parsedCharges.value = charges;
+                if (!text) {
+                    scanError.value = "Vision didn't find any text in that photo.";
+                } else {
+                    const { items, charges } = ReceiptParser.parseReceipt(text);
+                    parsedItems.value = items;
+                    parsedCharges.value = charges;
+                }
             } catch (err) {
                 console.error('Receipt scan error:', err);
-                extractedText.value = 'Could not process this image. Try a sharper, straight-on photo.';
+                scanError.value = err.message || 'Could not process this image.';
             } finally {
                 ocrProcessing.value = false;
                 event.target.value = ''; // let the same file be re-selected
@@ -208,6 +242,7 @@ createApp({
             resetParsedReceipt();
             extractedText.value = '';
             showExtractedText.value = false;
+            scanError.value = '';
         };
 
         const splitDishEvenly = (dishIndex) => {
@@ -322,7 +357,7 @@ createApp({
                     if (settings.tipPercent) tipPercent.value = settings.tipPercent;
                     if (settings.evenTipPercent) evenTipPercent.value = settings.evenTipPercent;
                     if (settings.tipCalculationMethod) tipCalculationMethod.value = settings.tipCalculationMethod;
-                    if (settings.receiptLang) receiptLang.value = settings.receiptLang;
+                    if (settings.visionApiKey) visionApiKey.value = settings.visionApiKey;
                 } catch (e) {
                     console.error('Error loading settings:', e);
                 }
@@ -330,14 +365,14 @@ createApp({
         });
 
         // Save settings to localStorage
-        watch([taxPercent, evenTaxPercent, tipPercent, evenTipPercent, tipCalculationMethod, receiptLang], () => {
+        watch([taxPercent, evenTaxPercent, tipPercent, evenTipPercent, tipCalculationMethod, visionApiKey], () => {
             const settings = {
                 taxPercent: taxPercent.value,
                 evenTaxPercent: evenTaxPercent.value,
                 tipPercent: tipPercent.value,
                 evenTipPercent: evenTipPercent.value,
                 tipCalculationMethod: tipCalculationMethod.value,
-                receiptLang: receiptLang.value
+                visionApiKey: visionApiKey.value
             };
             localStorage.setItem('tallySettings', JSON.stringify(settings));
         });
@@ -594,7 +629,8 @@ createApp({
             ocrProcessing,
             extractedText,
             showExtractedText,
-            receiptLang,
+            visionApiKey,
+            scanError,
             parsedItems,
             parsedCharges,
             selectedParsedItems,

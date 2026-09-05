@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Tally is a single-page, client-only bill splitter. No backend, no bundler, no framework CLI. `index.html` loads every dependency from a CDN and boots one Vue 3 app defined in `js/app.js`. Live at https://getsuzym.github.io/Tally/.
+Tally is a single-page bill splitter, hosted as a static site (no backend, no bundler, no framework CLI). `index.html` loads every dependency from a CDN and boots one Vue 3 app defined in `js/app.js`. Live at https://getsuzym.github.io/Tally/.
+
+One feature calls an external API directly from the browser (see Receipt scanning below) — that's the one place a user's data leaves their device; everything else is fully client-side.
 
 ## Commands
 
@@ -28,7 +30,7 @@ Push to `main` → `.github/workflows/deploy-pages.yml` publishes the repo root 
 
 - **`index.html`** (~550 lines) — all markup and styling. Tailwind utility classes inline (via `cdn.tailwindcss.com`), Font Awesome icons, plus a small `css/styles.css` for the handful of things Tailwind can't express (animations, `.dish-item`, etc.). Vue template syntax lives directly in the HTML under `#app`.
 - **`js/app.js`** — the entire application: one `createApp({ setup() {...} })` using the Composition API with `ref`/`computed`/`watch`. No components, no router, no store. Everything returned from `setup()` is bound in `index.html`.
-- **CDN globals** (not npm deps — `package.json` only carries Jest): `Vue`, `Tesseract` (OCR), `html2canvas` (currently unused by the active UI; `shareResults` still references it).
+- **CDN globals** (not npm deps — `package.json` only carries Jest): `Vue`, `html2canvas` (currently unused by the active UI; `shareResults` still references it).
 
 ### Core domain model
 
@@ -43,10 +45,15 @@ Push to `main` → `.github/workflows/deploy-pages.yml` publishes the repo root 
 
 ### Receipt scanning
 
-- **`js/receipt-parser.js`** — pure, DOM-free, and the only unit-tested-for-real module (`js/receipt-parser.test.js` actually `require`s it). Loaded via its own `<script>` before `app.js`; exposes `window.ReceiptParser` in the browser, `module.exports` under Jest.
+OCR used to run client-side via Tesseract.js; it was replaced because Tesseract could not reliably read real phone photos of receipts (verified directly — see git history around the switch). It now calls the **Google Cloud Vision API** (`DOCUMENT_TEXT_DETECTION`) straight from the browser, no backend:
+
+- **`handleReceiptUpload`** in `app.js` POSTs the photo (base64) to `https://vision.googleapis.com/v1/images:annotate?key=<visionApiKey>` and reads `responses[0].fullTextAnnotation.text`. `visionApiKey` is a user-supplied key (pasted into the UI, persisted in `tallySettings` in `localStorage`) — there is no key baked into the repo. Errors surface two shapes from Google: a top-level `error` (bad/missing key, API not enabled) and a per-image `responses[0].error`; both are handled.
+  - This works with no backend because Cloud Vision's REST endpoint sends permissive CORS headers (verified directly with a curl preflight) and its API keys support HTTP-referrer restriction — the intended setup is a key restricted to this site's domain, so it's safe to ship client-side.
+  - Vision auto-detects language/script, so there's no English/Chinese mode toggle to maintain — one code path handles both.
+- **`js/receipt-parser.js`** — pure, DOM-free, and the only unit-tested-for-real module (`js/receipt-parser.test.js` actually `require`s it). Loaded via its own `<script>` before `app.js`; exposes `window.ReceiptParser` in the browser, `module.exports` under Jest. Takes whatever OCR text it's given (source-agnostic) and returns structured data:
   - `parseReceipt(text)` → `{ items: [{name, price, selected}], charges: {subtotal, tax, tip, total} }`. Matches a trailing price (`$`/`¥`/`￥` prefix or `元`/`RMB` suffix, `\d{1,4}[.,]\d{2}`) per line, routes subtotal/tax/tip/total keyword lines into `charges` (order matters — "subtotal" tested before "total"), strips leading qty and stray column prices from names. Keyword lists and the `CJK` char-class cover both English and zh-Hans/zh-Hant (小计/税/服务费/总计 …); spaced-out CJK names get re-joined.
   - `derivePercents(charges, fallbackBase, tipAfterTax)` → `{taxPercent?, tipPercent?}`, honoring the before/after-tax tip convention.
-- **`handleReceiptUpload`** in `app.js` runs Tesseract OCR in the language chosen by `receiptLang` (`eng` / `chi_sim+chi_tra` / both; persisted in `tallySettings`), stores raw text in `extractedText` (behind a "Raw scanned text" toggle), then fills `parsedItems` / `parsedCharges`. Chinese scans switch Tesseract's `langPath` to the `4.0.0_fast` CDN so the trained-data download stays small. The user reviews an editable list; `applyParsedReceipt` pushes selected rows into `dishes[]` and sets `taxPercent`/`tipPercent` from `derivePercents`. `parsedReceiptCheck` compares the selected-items sum to the receipt's own subtotal and warns on a >2% gap.
+- The user reviews an editable list; `applyParsedReceipt` pushes selected rows into `dishes[]` and sets `taxPercent`/`tipPercent` from `derivePercents`. `parsedReceiptCheck` compares the selected-items sum to the receipt's own subtotal and warns on a >2% gap.
 - If you change the parser, add cases to `js/receipt-parser.test.js` (real assertions there) and keep the regex/keyword lists in sync with `derivePercents`.
 
 ### Tests
