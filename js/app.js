@@ -39,19 +39,9 @@ createApp({
         const evenTipMode = ref('percent');
         const evenTipAmount = ref(0);
 
-        // Receipt OCR
-        const receiptInput = ref(null);
-        const ocrProcessing = ref(false);
-        const extractedText = ref('');
-        const showExtractedText = ref(false);
-        const visionApiKey = ref(''); // Google Cloud Vision API key, kept only in localStorage
-        const scanError = ref('');
-        const parsedItems = ref([]); // { name, price, selected } awaiting user review
-        const parsedCharges = ref({ subtotal: null, tax: null, tip: null, total: null });
         const resultsSection = ref(null);
         const showStickyDetails = ref(false);
         const showStickySummary = ref(false);
-        const showAdvancedFeatures = ref(false);
 
         const addPerson = () => {
             let nameToAdd = newPerson.value.trim();
@@ -108,141 +98,6 @@ createApp({
             const index = sharedList.indexOf(person);
             if (index > -1) sharedList.splice(index, 1);
             else sharedList.push(person);
-        };
-
-        const resetParsedReceipt = () => {
-            parsedItems.value = [];
-            parsedCharges.value = { subtotal: null, tax: null, tip: null, total: null };
-        };
-
-        const VISION_ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate';
-
-        const handleReceiptUpload = async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const apiKey = visionApiKey.value.trim();
-            if (!apiKey) {
-                scanError.value = 'Add a Google Cloud Vision API key above first.';
-                event.target.value = '';
-                return;
-            }
-
-            ocrProcessing.value = true;
-            extractedText.value = '';
-            showExtractedText.value = false;
-            scanError.value = '';
-            resetParsedReceipt();
-
-            try {
-                const dataUrl = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = () => reject(new Error('Could not read the selected file.'));
-                    reader.readAsDataURL(file);
-                });
-                const base64Image = dataUrl.split(',')[1];
-
-                const response = await fetch(`${VISION_ENDPOINT}?key=${encodeURIComponent(apiKey)}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        requests: [{
-                            image: { content: base64Image },
-                            // DOCUMENT_TEXT_DETECTION is tuned for dense text (receipts,
-                            // documents) and auto-detects language, including mixed
-                            // English/Chinese on the same receipt.
-                            features: [{ type: 'DOCUMENT_TEXT_DETECTION' }]
-                        }]
-                    })
-                });
-
-                const result = await response.json();
-                // Errors can come back two ways: a top-level `error` (bad key, API not
-                // enabled, quota) or a per-image `responses[0].error` (bad image data).
-                const perImageError = result.responses && result.responses[0] && result.responses[0].error;
-                const apiError = (result.error && result.error.message) || (perImageError && perImageError.message);
-                if (!response.ok || perImageError) {
-                    throw new Error(apiError || `Vision API request failed (${response.status}).`);
-                }
-
-                const annotation = result.responses[0].fullTextAnnotation;
-                const text = annotation ? annotation.text : '';
-                extractedText.value = text;
-
-                if (!text) {
-                    scanError.value = "Vision didn't find any text in that photo.";
-                } else {
-                    const { items, charges } = ReceiptParser.parseReceipt(text);
-                    parsedItems.value = items;
-                    parsedCharges.value = charges;
-                }
-            } catch (err) {
-                console.error('Receipt scan error:', err);
-                scanError.value = err.message || 'Could not process this image.';
-            } finally {
-                ocrProcessing.value = false;
-                event.target.value = ''; // let the same file be re-selected
-            }
-        };
-
-        const selectedParsedItems = computed(() =>
-            parsedItems.value.filter(i => i.selected && String(i.name).trim())
-        );
-
-        const parsedItemsSubtotal = computed(() =>
-            selectedParsedItems.value.reduce((sum, i) => sum + (Number(i.price) || 0), 0)
-        );
-
-        // Cross-check parsed items against the receipt's own subtotal/total.
-        const parsedReceiptCheck = computed(() => {
-            const c = parsedCharges.value;
-            let target = c.subtotal;
-            if (target == null && c.total != null) {
-                target = c.total - (c.tax || 0) - (c.tip || 0);
-            }
-            if (target == null || target <= 0) return null;
-            const diff = parsedItemsSubtotal.value - target;
-            return { target, diff, ok: Math.abs(diff) / target <= 0.02 };
-        });
-
-        const removeParsedItem = (index) => {
-            parsedItems.value.splice(index, 1);
-        };
-
-        const applyParsedReceipt = () => {
-            const chosen = selectedParsedItems.value;
-            if (chosen.length === 0) return;
-
-            chosen.forEach(i => {
-                dishes.value.push({
-                    name: String(i.name).trim(),
-                    price: Number(i.price) || 0,
-                    sharedBy: [],
-                    isEdited: true
-                });
-            });
-
-            const fallbackBase = chosen.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
-            const percents = ReceiptParser.derivePercents(
-                parsedCharges.value,
-                fallbackBase,
-                tipCalculationMethod.value === 'after-tax'
-            );
-            if (percents.taxPercent != null) taxPercent.value = percents.taxPercent;
-            if (percents.tipPercent != null) {
-                tipMode.value = 'percent';
-                tipPercent.value = percents.tipPercent;
-            }
-
-            discardParsedReceipt();
-        };
-
-        const discardParsedReceipt = () => {
-            resetParsedReceipt();
-            extractedText.value = '';
-            showExtractedText.value = false;
-            scanError.value = '';
         };
 
         const splitDishEvenly = (dishIndex) => {
@@ -357,7 +212,6 @@ createApp({
                     if (settings.tipPercent) tipPercent.value = settings.tipPercent;
                     if (settings.evenTipPercent) evenTipPercent.value = settings.evenTipPercent;
                     if (settings.tipCalculationMethod) tipCalculationMethod.value = settings.tipCalculationMethod;
-                    if (settings.visionApiKey) visionApiKey.value = settings.visionApiKey;
                 } catch (e) {
                     console.error('Error loading settings:', e);
                 }
@@ -365,14 +219,13 @@ createApp({
         });
 
         // Save settings to localStorage
-        watch([taxPercent, evenTaxPercent, tipPercent, evenTipPercent, tipCalculationMethod, visionApiKey], () => {
+        watch([taxPercent, evenTaxPercent, tipPercent, evenTipPercent, tipCalculationMethod], () => {
             const settings = {
                 taxPercent: taxPercent.value,
                 evenTaxPercent: evenTaxPercent.value,
                 tipPercent: tipPercent.value,
                 evenTipPercent: evenTipPercent.value,
-                tipCalculationMethod: tipCalculationMethod.value,
-                visionApiKey: visionApiKey.value
+                tipCalculationMethod: tipCalculationMethod.value
             };
             localStorage.setItem('tallySettings', JSON.stringify(settings));
         });
@@ -625,21 +478,9 @@ createApp({
             computedDishTipPercent,
             computedEvenTipAmount,
             computedEvenTipPercent,
-            receiptInput,
-            ocrProcessing,
-            extractedText,
-            showExtractedText,
-            visionApiKey,
-            scanError,
-            parsedItems,
-            parsedCharges,
-            selectedParsedItems,
-            parsedItemsSubtotal,
-            parsedReceiptCheck,
             resultsSection,
             showStickyDetails,
             showStickySummary,
-            showAdvancedFeatures,
             collapsedSections,
             numberOfPeople,
             isSectionComplete,
@@ -654,10 +495,6 @@ createApp({
             removeDish,
             handleDishNameFocus,
             togglePerson,
-            handleReceiptUpload,
-            removeParsedItem,
-            applyParsedReceipt,
-            discardParsedReceipt,
             splitDishEvenly,
             toggleSection,
             setQuickTip,
